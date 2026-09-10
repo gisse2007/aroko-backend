@@ -806,7 +806,6 @@ export const eliminarProducto = async (req, res) => {
 
 // GET /api/productos/nuevo
 export const listarProductosNuevo = async (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit ?? '8', 10), 20);
   const limit = Math.min(parseInt(req.query.limit ?? '6', 10), 20);
   try {
     const { rows } = await pool.query(PRODUCTOS_QUERIES.LIST_NUEVO, [limit]);
