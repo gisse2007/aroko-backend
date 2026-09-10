@@ -11,7 +11,8 @@ import {
 
 import {
   verificarToken,
-  verificarRol
+  verificarRol,
+  verificarPermiso
 } from '../middleware/auth.middleware.js';
 
 import {
@@ -25,7 +26,8 @@ router.use(
   verificarRol(
     'Administrador',
     'Panadero'
-  )
+  ),
+  verificarPermiso('GESTIONAR_COMPRAS')
 );
 
 // ======================================

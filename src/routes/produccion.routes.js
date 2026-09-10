@@ -5,11 +5,11 @@ import {
   listarProduccion, obtenerProduccion,
   registrarProduccion, anularProduccion,
 } from '../controllers/produccion.controller.js';
-import { verificarToken, verificarRol } from '../middleware/auth.middleware.js';
+import { verificarToken, verificarRol, verificarPermiso } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-router.use(verificarToken, verificarRol('Administrador', 'Panadero'));
+router.use(verificarToken, verificarRol('Administrador', 'Panadero'), verificarPermiso('GESTIONAR_PRODUCCION'));
 
 router.get('/',               listarProduccion);   // ?estado=&empleado=&desde=&hasta=
 router.get('/:id',            obtenerProduccion);

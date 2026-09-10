@@ -181,6 +181,17 @@ export const anularVenta = async (req, res) => {
 //  ABONOS
 // ══════════════════════════════════════════════
 
+// GET /api/abonos/mis-abonos
+export const listarMisAbonos = async (req, res) => {
+  try {
+    const { rows } = await pool.query(ABONOS_QUERIES.MY_CLIENTE, [req.usuario.id_usuario]);
+    return res.status(200).json({ ok: true, data: rows });
+  } catch (error) {
+    console.error('Error al listar abonos del cliente:', error.message);
+    return res.status(500).json({ ok: false, message: 'Error al listar tus abonos.' });
+  }
+};
+
 // GET /api/abonos?venta_id=&desde=&hasta=
 export const listarAbonos = async (req, res) => {
   const { venta_id, desde, hasta } = req.query;

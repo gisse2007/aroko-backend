@@ -5,12 +5,12 @@ import {
   listarUsuarios, obtenerUsuario, crearUsuario,
   editarUsuario, cambiarEstadoUsuario, eliminarUsuario,
 } from '../controllers/usuarios.controller.js';
-import { verificarToken, verificarRol } from '../middleware/auth.middleware.js';
+import { verificarToken, verificarRol, verificarPermiso } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
 // Solo el Administrador gestiona usuarios
-router.use(verificarToken, verificarRol('Administrador'));
+router.use(verificarToken, verificarRol('Administrador'), verificarPermiso('GESTIONAR_USUARIOS'));
 
 router.get('/',              listarUsuarios);
 router.get('/:id',           obtenerUsuario);

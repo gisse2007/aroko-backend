@@ -7,16 +7,16 @@ import {
   clientesParaSelect, sincronizarClientes,
   obtenerPerfilCliente, editarPerfilCliente,
 } from '../controllers/pedidos.controller.js';
-import { verificarToken, verificarRol } from '../middleware/auth.middleware.js';
+import { verificarToken, verificarRol, verificarPermiso } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
 // ── Rutas del propio cliente (solo token, sin restricción de rol) ──
-router.get('/perfil', verificarToken, obtenerPerfilCliente);
-router.put('/perfil', verificarToken, editarPerfilCliente);
+router.get('/perfil', verificarToken, verificarRol('Cliente'), obtenerPerfilCliente);
+router.put('/perfil', verificarToken, verificarRol('Cliente'), editarPerfilCliente);
 
 // ── Rutas del panel admin (requieren rol Administrador o Repartidor) ──
-router.use(verificarToken, verificarRol('Administrador', 'Repartidor'));
+router.use(verificarToken, verificarRol('Administrador', 'Repartidor'), verificarPermiso('GESTIONAR_VENTAS'));
 
 router.get('/select',       clientesParaSelect);
 router.post('/sincronizar', verificarRol('Administrador'), sincronizarClientes);

@@ -5,11 +5,11 @@ import {
   listarCategoriasInsumo, obtenerCategoriaInsumo, crearCategoriaInsumo,
   editarCategoriaInsumo, cambiarEstadoCategoriaInsumo, eliminarCategoriaInsumo,
 } from '../controllers/stock.controller.js';
-import { verificarToken, verificarRol } from '../middleware/auth.middleware.js';
+import { verificarToken, verificarRol, verificarPermiso } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-router.use(verificarToken, verificarRol('Administrador', 'Panadero'));
+router.use(verificarToken, verificarRol('Administrador', 'Panadero'), verificarPermiso('GESTIONAR_COMPRAS'));
 
 router.get('/',             listarCategoriasInsumo);   // ?all=true para selects
 router.get('/:id',          obtenerCategoriaInsumo);

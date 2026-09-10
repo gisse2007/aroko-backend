@@ -5,11 +5,11 @@ import {
   listarPermisos, obtenerPermiso, crearPermiso,
   editarPermiso, cambiarEstadoPermiso, eliminarPermiso,
 } from '../controllers/roles.controller.js';
-import { verificarToken, verificarRol } from '../middleware/auth.middleware.js';
+import { verificarToken, verificarRol, verificarPermiso } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-router.use(verificarToken, verificarRol('Administrador'));
+router.use(verificarToken, verificarRol('Administrador'), verificarPermiso('GESTIONAR_USUARIOS'));
 
 router.get('/',          listarPermisos);
 router.get('/:id',       obtenerPermiso);

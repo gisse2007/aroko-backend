@@ -4,12 +4,15 @@ import { Router } from 'express';
 import {
   listarAbonos, obtenerAbono,
   registrarAbono, anularAbono,
+  listarMisAbonos,
 } from '../controllers/ventas.controller.js';
-import { verificarToken, verificarRol } from '../middleware/auth.middleware.js';
+import { verificarToken, verificarRol, verificarPermiso } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-router.use(verificarToken, verificarRol('Administrador', 'Repartidor'));
+router.get('/mis-abonos', verificarToken, verificarRol('Cliente'), listarMisAbonos);
+
+router.use(verificarToken, verificarRol('Administrador', 'Repartidor'), verificarPermiso('GESTIONAR_VENTAS'));
 
 router.get('/',             listarAbonos);    // ?venta_id=&desde=&hasta=
 router.get('/:id',          obtenerAbono);

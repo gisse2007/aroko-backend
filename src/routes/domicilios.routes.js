@@ -14,7 +14,8 @@ import {
 
 import {
   verificarToken,
-  verificarRol
+  verificarRol,
+  verificarPermiso
 } from "../middleware/auth.middleware.js";
 
 
@@ -25,6 +26,7 @@ const router = Router();
 router.get(
   "/mis-domicilios",
   verificarToken,
+  verificarRol("Cliente"),
   obtenerMisDomicilios
 );
 
@@ -36,7 +38,8 @@ router.use(
   verificarRol(
     "Administrador",
     "Repartidor"
-  )
+  ),
+  verificarPermiso("GESTIONAR_DOMICILIOS")
 );
 
 

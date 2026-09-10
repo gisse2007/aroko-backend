@@ -49,7 +49,7 @@ export const AUTH_QUERIES = {
     FROM usuarios u
     JOIN roles r ON r.id_rol = u.rol_id
     LEFT JOIN rol_permiso rp ON rp.rol_id = u.rol_id
-    LEFT JOIN permisos p ON p.id_permiso = rp.permiso_id
+    LEFT JOIN permisos p ON p.id_permiso = rp.permiso_id AND p.estado = 'ACTIVO'
     LEFT JOIN clientes c ON c.usuario_id = u.id_usuario
     LEFT JOIN empleados e ON e.usuario_id = u.id_usuario
     WHERE u.id_usuario = $1
@@ -109,7 +109,7 @@ export const AUTH_QUERIES = {
     FROM usuarios u
     JOIN roles r ON r.id_rol = u.rol_id
     LEFT JOIN rol_permiso rp ON rp.rol_id = u.rol_id
-    LEFT JOIN permisos p ON p.id_permiso = rp.permiso_id
+    LEFT JOIN permisos p ON p.id_permiso = rp.permiso_id AND p.estado = 'ACTIVO'
     LEFT JOIN empleados e ON e.usuario_id = u.id_usuario
     LEFT JOIN clientes  c ON c.usuario_id = u.id_usuario
     WHERE u.correo = $1

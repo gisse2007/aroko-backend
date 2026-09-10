@@ -365,7 +365,7 @@ export const solicitarRecuperacion =
 
     } catch (error) {
       console.error('Error en recuperación:', error.message, '| code:', error.code, '| detail:', error.detail);
-      return res.status(500).json({ ok: false, message: 'Error interno del servidor.' });
+      return res.status(503).json({ ok: false, message: 'No se pudo enviar el correo. Revisa la configuración SMTP del servidor.' });
     }
   };
 

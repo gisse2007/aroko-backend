@@ -181,6 +181,15 @@ export const crearOrder = async (req, res) => {
       ]);
       const venta_id = ventaRows[0].id_venta;
 
+      if (req.body.direccion?.trim()) {
+        await client.query(
+          `INSERT INTO domicilios
+             (venta_id, cliente_id, empleado_id, barrio, direccion, referencias)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [venta_id, cliente_id, empleado_id, null, req.body.direccion.trim(), null]
+        );
+      }
+
       for (const item of itemsCalculados) {
         await client.query(VENTAS_QUERIES.INSERT_DETALLE, [
           venta_id, item.productId, item.qty, item.price, item.subtotal,

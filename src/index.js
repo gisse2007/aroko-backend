@@ -117,7 +117,7 @@ const app = express();
 app.use(cors({
   origin: (origin, callback) => {
     const allowed = process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(',')
+      ? process.env.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim().replace(/\/$/, ''))
       : [];
     // Sin origin (Postman, curl) o localhost en desarrollo siempre permitido
     if (!origin || /^http:\/\/localhost:\d+$/.test(origin) || allowed.includes(origin)) {

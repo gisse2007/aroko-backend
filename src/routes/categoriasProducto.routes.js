@@ -5,14 +5,14 @@ import {
   listarCategoriasProducto, obtenerCategoriaProducto, crearCategoriaProducto,
   editarCategoriaProducto, cambiarEstadoCategoriaProducto, eliminarCategoriaProducto,
 } from '../controllers/productos.controller.js';
-import { verificarToken, verificarRol } from '../middleware/auth.middleware.js';
+import { verificarToken, verificarRol, verificarPermiso } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
 // Ruta pública: el catálogo la necesita sin login
 router.get('/', listarCategoriasProducto); // ?all=true para selects
 
-router.use(verificarToken, verificarRol('Administrador', 'Panadero'));
+router.use(verificarToken, verificarRol('Administrador', 'Panadero'), verificarPermiso('GESTIONAR_VENTAS'));
 router.get('/:id',          obtenerCategoriaProducto);
 router.post('/',            crearCategoriaProducto);
 router.put('/:id',          editarCategoriaProducto);

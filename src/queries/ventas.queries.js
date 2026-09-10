@@ -253,6 +253,27 @@ export const VENTAS_QUERIES = {
 // ══════════════════════════════════════════════
 export const ABONOS_QUERIES = {
 
+  MY_CLIENTE: `
+    SELECT
+      a.id_abono,
+      a.venta_id,
+      v.numero_venta,
+      v.pedido_id,
+      v.total AS venta_total,
+      v.abonado AS venta_abonado,
+      v.saldo AS venta_saldo,
+      a.numero_cuota,
+      a.fecha,
+      a.valor,
+      a.metodo_pago,
+      a.estado
+    FROM abonos a
+    JOIN ventas v ON v.id_venta = a.venta_id
+    JOIN clientes c ON c.id_cliente = v.cliente_id
+    WHERE c.usuario_id = $1
+    ORDER BY a.fecha DESC, a.id_abono DESC
+  `,
+
   LIST: `
     SELECT
       a.id_abono,

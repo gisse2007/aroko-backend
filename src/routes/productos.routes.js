@@ -16,7 +16,8 @@ import {
 
 import {
   verificarToken,
-  verificarRol
+  verificarRol,
+  verificarPermiso
 } from '../middleware/auth.middleware.js';
 
 import { validateSearchParams } from '../middleware/searchParams.middleware.js';
@@ -35,7 +36,7 @@ router.get('/nuevo', listarProductosNuevo);
 router.get('/temporada', listarProductosTemporada);
 
 // ── Rutas protegidas ─────────────────────────────────────────────────────────
-router.use(verificarToken, verificarRol('Administrador', 'Panadero'));
+router.use(verificarToken, verificarRol('Administrador', 'Panadero'), verificarPermiso('GESTIONAR_VENTAS'));
 
 router.get('/stock-bajo',  productosStockBajo);
 router.get('/select',      productosParaSelect);

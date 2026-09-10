@@ -6,11 +6,11 @@ import {
   editarEmpleado, cambiarEstadoEmpleado, eliminarEmpleado,
   usuariosDisponibles,
 } from '../controllers/usuarios.controller.js';
-import { verificarToken, verificarRol } from '../middleware/auth.middleware.js';
+import { verificarToken, verificarRol, verificarPermiso } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-router.use(verificarToken, verificarRol('Administrador'));
+router.use(verificarToken, verificarRol('Administrador'), verificarPermiso('GESTIONAR_USUARIOS'));
 
 // Ruta especial ANTES del /:id para que no lo confunda con un id
 router.get('/usuarios-disponibles', usuariosDisponibles);

@@ -5,11 +5,11 @@ import {
   listarPedidos, listarPedidosAceptados, obtenerPedido, crearPedido,
   editarPedido, cambiarEstadoPedido, cancelarPedido,
 } from '../controllers/pedidos.controller.js';
-import { verificarToken, verificarRol } from '../middleware/auth.middleware.js';
+import { verificarToken, verificarRol, verificarPermiso } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-router.use(verificarToken, verificarRol('Administrador', 'Repartidor'));
+router.use(verificarToken, verificarRol('Administrador', 'Repartidor'), verificarPermiso('GESTIONAR_PEDIDOS'));
 
 router.get('/',                   listarPedidos);          // ?search=&estado=&desde=&hasta= (sin params → solo ACTIVO)
 router.get('/aceptados',          listarPedidosAceptados); // para dropdown de Ventas

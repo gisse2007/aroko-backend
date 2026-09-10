@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
+import pool from '../config/db.js';
 
-export const verificarToken = (req, res, next) => {
+export const verificarToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -20,15 +21,42 @@ export const verificarToken = (req, res, next) => {
     const rolObj = decoded.rol_obj ?? null;
     const rolNombre = decoded.rol_nombre ?? decoded.rol ?? rolObj?.nombre ?? '';
 
-    // Normalizar siempre a id_usuario sin importar cómo fue generado el token
+    const { rows } = await pool.query(`
+      SELECT
+        u.id_usuario,
+        u.nombre_usuario,
+        u.correo,
+        u.estado AS usuario_estado,
+        r.id_rol AS rol_id,
+        r.nombre AS rol_nombre,
+        r.estado AS rol_estado,
+        COALESCE(
+          JSONB_AGG(p.nombre) FILTER (WHERE p.id_permiso IS NOT NULL AND p.estado = 'ACTIVO'),
+          '[]'::jsonb
+        ) AS permisos
+      FROM usuarios u
+      JOIN roles r ON r.id_rol = u.rol_id
+      LEFT JOIN rol_permiso rp ON rp.rol_id = r.id_rol
+      LEFT JOIN permisos p ON p.id_permiso = rp.permiso_id
+      WHERE u.id_usuario = $1
+      GROUP BY u.id_usuario, u.nombre_usuario, u.correo, u.estado,
+               r.id_rol, r.nombre, r.estado
+    `, [decoded.id_usuario ?? decoded.id]);
+
+    const actual = rows[0];
+    if (!actual || actual.usuario_estado !== 'ACTIVO' || actual.rol_estado !== 'ACTIVO') {
+      return res.status(401).json({ ok: false, message: 'La sesión ya no está activa.' });
+    }
+
+    // Normalizar siempre a id_usuario y permisos vigentes de la BD.
     req.usuario = {
-      id_usuario:     decoded.id_usuario ?? decoded.id,
-      nombre_usuario: decoded.nombre_usuario ?? decoded.nombre ?? decoded.correo ?? decoded.email,
-      correo:         decoded.correo  ?? decoded.email,
-      rol:            typeof decoded.rol === 'string' ? decoded.rol : rolNombre,
-      rol_nombre:     rolNombre,
-      rol_id:         decoded.rol_id ?? rolObj?.id_rol ?? null,
-      permisos:       Array.isArray(decoded.permisos) ? decoded.permisos : [],
+      id_usuario:     actual.id_usuario,
+      nombre_usuario: actual.nombre_usuario ?? decoded.nombre_usuario ?? decoded.nombre ?? decoded.correo ?? decoded.email,
+      correo:         actual.correo ?? decoded.correo ?? decoded.email,
+      rol:            actual.rol_nombre,
+      rol_nombre:     actual.rol_nombre,
+      rol_id:         actual.rol_id,
+      permisos:       actual.permisos,
       empleado_id:    decoded.empleado_id ?? decoded.empleado?.id_empleado ?? null,
     };
     next();
@@ -66,11 +94,33 @@ export const verificarRol = (...rolesPermitidos) => (req, res, next) => {
   next();
 };
 
+export const verificarPermiso = (...permisosPermitidos) => (req, res, next) => {
+  if (!req.usuario) {
+    return res.status(401).json({ ok: false, message: 'No autenticado' });
+  }
+
+  const permisos = new Set((req.usuario.permisos ?? []).map((permiso) =>
+    String(permiso).trim().toUpperCase()
+  ));
+  const permitido = permisosPermitidos.some((permiso) =>
+    permisos.has(String(permiso).trim().toUpperCase())
+  );
+
+  if (!permitido) {
+    return res.status(403).json({
+      ok: false,
+      message: 'No tienes el permiso necesario para esta acción.',
+      permisos_requeridos: permisosPermitidos,
+    });
+  }
+  next();
+};
+
 // Middleware exclusivo para rutas del panel administrativo
 export const soloPanel = (req, res, next) => {
   const ROLES_PANEL = ['Administrador', 'Panadero', 'Repartidor'];
-  const rol = req.usuario?.rol ?? req.usuario?.rol_nombre;
-  if (!ROLES_PANEL.includes(rol)) {
+  const rol = String(req.usuario?.rol ?? req.usuario?.rol_nombre ?? '').trim();
+  if (!ROLES_PANEL.some((permitido) => permitido.toLowerCase() === rol.toLowerCase())) {
     return res.status(403).json({
       ok: false,
       message: 'No tienes acceso al panel administrativo.',

@@ -1,12 +1,36 @@
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: process.env.SMTP_HOST || undefined,
+  port: Number(process.env.SMTP_PORT || 465),
+  secure: String(process.env.SMTP_SECURE ?? "true").toLowerCase() === "true",
+  service: process.env.SMTP_HOST ? undefined : "gmail",
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.SMTP_USER || process.env.EMAIL_USER,
+    pass: process.env.SMTP_PASS || process.env.EMAIL_PASS,
   },
 });
+
+const enviarEmail = async (opciones) => {
+  const usuario = process.env.SMTP_USER || process.env.EMAIL_USER;
+  const contrasena = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+  if (!usuario || !contrasena) {
+    throw new Error("Configuración SMTP incompleta: faltan SMTP_USER/SMTP_PASS o EMAIL_USER/EMAIL_PASS.");
+  }
+
+  return transporter.sendMail({
+    from: opciones.from || `"Aroko" <${usuario}>`,
+    ...opciones,
+  });
+};
+
+const EMAIL_FROM = process.env.SMTP_USER || process.env.EMAIL_USER || "no-reply@aroko.com";
 
 // ─── Paleta exacta de la página ────────────────────────────────────────────
 // --accent:     #3BBEDA  (azul principal)
@@ -112,8 +136,8 @@ const baseTemplate = ({ titulo, subtitulo = "", contenido, accentColor = BASE.ac
             <p style="margin:6px 0 0;font-family:'Plus Jakarta Sans',Arial,sans-serif;
                       font-size:12px;color:rgba(255,255,255,0.22);">
               ¿Dudas? Escríbenos a
-              <a href="mailto:${process.env.EMAIL_USER}"
-                 style="color:${BASE.accent};text-decoration:none;">${process.env.EMAIL_USER}</a>
+                <a href="mailto:${EMAIL_FROM}"
+                  style="color:${BASE.accent};text-decoration:none;">${EMAIL_FROM}</a>
             </p>
           </td>
         </tr>
@@ -206,8 +230,8 @@ export const enviarCorreoBienvenida = async ({ correo, nombre }) => {
     </p>
   `;
 
-  await transporter.sendMail({
-    from: `"Aroko" <${process.env.EMAIL_USER}>`,
+  await enviarEmail({
+    from: `"Aroko" <${EMAIL_FROM}>`,
     to: correo,
     subject: `¡Bienvenido/a a Aroko, ${nombre}! 🥐`,
     html: baseTemplate({
@@ -298,8 +322,8 @@ export const enviarCorreoPedidoExitoso = async ({
     </p>
   `;
 
-  await transporter.sendMail({
-    from: `"Aroko" <${process.env.EMAIL_USER}>`,
+  await enviarEmail({
+    from: `"Aroko" <${EMAIL_FROM}>`,
     to: correo,
     subject: `Pedido ${numeroPedido} recibido — Aroko 🥐`,
     html: baseTemplate({
@@ -343,8 +367,8 @@ export const enviarCorreoDomicilioCreado = async ({
     </p>
   `;
 
-  await transporter.sendMail({
-    from: `"Aroko" <${process.env.EMAIL_USER}>`,
+  await enviarEmail({
+    from: `"Aroko" <${EMAIL_FROM}>`,
     to: correo,
     subject: `Tu domicilio está registrado — Aroko 🛵`,
     html: baseTemplate({
@@ -418,8 +442,8 @@ export const enviarCorreoCredenciales = async ({ correo, nombre, contrasena, esE
     </p>
   `;
 
-  await transporter.sendMail({
-    from: `"Aroko" <${process.env.EMAIL_USER}>`,
+  await enviarEmail({
+    from: `"Aroko" <${EMAIL_FROM}>`,
     to: correo,
     subject: `Tus credenciales de acceso — Aroko 🔑`,
     html: baseTemplate({
@@ -469,8 +493,8 @@ export const enviarCorreoEntrega = async ({ correo, nombre }) => {
     </p>
   `;
 
-  await transporter.sendMail({
-    from: `"Aroko" <${process.env.EMAIL_USER}>`,
+  await enviarEmail({
+    from: `"Aroko" <${EMAIL_FROM}>`,
     to: correo,
     subject: `¡Tu pedido fue entregado! — Aroko ✅`,
     html: baseTemplate({
@@ -511,8 +535,8 @@ export const enviarCorreoFechaEntrega = async ({ correo, nombre, fechaEntrega, n
     </p>
   `;
 
-  await transporter.sendMail({
-    from: `"Aroko" <${process.env.EMAIL_USER}>`,
+  await enviarEmail({
+    from: `"Aroko" <${EMAIL_FROM}>`,
     to: correo,
     subject: `Fecha de entrega asignada — Pedido ${numeroPedido} 📅`,
     html: baseTemplate({
@@ -605,8 +629,8 @@ export const enviarCorreoRecuperacion = async ({ correo, codigo }) => {
     </p>
   `;
 
-  await transporter.sendMail({
-    from: `"Aroko" <${process.env.EMAIL_USER}>`,
+  await enviarEmail({
+    from: `"Aroko" <${EMAIL_FROM}>`,
     to: correo,
     subject: `Código de recuperación — Aroko 🔐`,
     html: baseTemplate({

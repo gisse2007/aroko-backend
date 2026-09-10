@@ -6,12 +6,12 @@ import {
   cambiarEstadoRol, eliminarRol,
   listarPermisosRol, permisosDisponibles, agregarPermiso, quitarPermiso,
 } from '../controllers/roles.controller.js';
-import { verificarToken, verificarRol } from '../middleware/auth.middleware.js';
+import { verificarToken, verificarRol, verificarPermiso } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
 // Todas las rutas de roles requieren estar autenticado y ser Administrador
-router.use(verificarToken, verificarRol('Administrador'));
+router.use(verificarToken, verificarRol('Administrador'), verificarPermiso('GESTIONAR_USUARIOS'));
 
 // ── Permisos de un rol ───────────────────────
 router.get('/:id/permisos',              listarPermisosRol);

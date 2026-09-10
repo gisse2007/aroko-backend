@@ -6,12 +6,12 @@ import {
   getResumen,
   getStockAlertas,
 } from '../controllers/dashboard.controller.js';
-import { verificarToken } from '../middleware/auth.middleware.js';
+import { verificarToken, verificarPermiso } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
 // Solo requiere estar autenticado (cualquier rol ve el dashboard)
-router.use(verificarToken);
+router.use(verificarToken, verificarPermiso('VER_DASHBOARD'));
 
 router.get('/',              getDashboard);     // todo en una sola llamada
 router.get('/resumen',       getResumen);       // contadores rápidos

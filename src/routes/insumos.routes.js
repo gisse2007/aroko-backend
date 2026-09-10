@@ -6,11 +6,11 @@ import {
   editarInsumo, cambiarEstadoInsumo, eliminarInsumo,
   insumosStockBajo,
 } from '../controllers/stock.controller.js';
-import { verificarToken, verificarRol } from '../middleware/auth.middleware.js';
+import { verificarToken, verificarRol, verificarPermiso } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-router.use(verificarToken, verificarRol('Administrador', 'Panadero'));
+router.use(verificarToken, verificarRol('Administrador', 'Panadero'), verificarPermiso('GESTIONAR_COMPRAS'));
 
 // Ruta especial ANTES de /:id
 router.get('/stock-bajo',   insumosStockBajo);
