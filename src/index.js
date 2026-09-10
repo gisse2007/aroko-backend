@@ -21,6 +21,7 @@ import { DOMICILIOS_QUERIES } from './queries/domicilios.queries.js';
 import { MOVIMIENTOS_QUERIES } from './queries/stock.queries.js';
 import { ORDERS_QUERIES } from './queries/orders.queries.js';
 import { INDEXES_QUERIES } from './queries/indexes.queries.js';
+import { PRODUCTOS_QUERIES } from './queries/productos.queries.js';
 
 // ─────────────────────────────────────────────
 // Migraciones automáticas
@@ -66,6 +67,7 @@ const migraciones = [
     nombre: 'clientes: eliminar huérfanos sin pedidos'
   },
   { query: INDEXES_QUERIES.MIGRATE, nombre: 'indexes: fk, filtered columns, composite' },
+  { query: PRODUCTOS_QUERIES.MIGRATE_BADGES, nombre: 'productos: es_nuevo, es_temporada' },
 ];
 
 async function ejecutarMigraciones() {

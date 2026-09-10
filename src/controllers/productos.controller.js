@@ -427,12 +427,16 @@ export const crearProducto = async (req, res) => {
     categoria_id,
     precio,
     stock_producto = 0,
-    receta = []
+    receta = [],
+    es_nuevo = false,
+    es_temporada = false,
   } = req.body;
 
   const categoriaId = Number(categoria_id);
   const precioVal   = Number(precio);
   const stockVal    = Number(stock_producto ?? 0);
+  const esNuevo     = (es_nuevo === true || es_nuevo === 'true' || es_nuevo === '1' || es_nuevo === 1);
+  const esTemporada = (es_temporada === true || es_temporada === 'true' || es_temporada === '1' || es_temporada === 1);
 
   if (!nombre || !categoria_id || precio === undefined ||
       Number.isNaN(precioVal) || Number.isNaN(categoriaId) || Number.isNaN(stockVal)) {
@@ -483,7 +487,9 @@ export const crearProducto = async (req, res) => {
         categoriaId,
         precioVal,
         stockVal,
-        imagen
+        imagen,
+        esNuevo,
+        esTemporada
       ]
     );
 
@@ -555,8 +561,13 @@ export const editarProducto = async (req, res) => {
     categoria_id,
     precio,
     stock_producto,
-    receta = []
+    receta = [],
+    es_nuevo = false,
+    es_temporada = false,
   } = req.body;
+
+  const esNuevo     = (es_nuevo === true || es_nuevo === 'true' || es_nuevo === '1' || es_nuevo === 1);
+  const esTemporada = (es_temporada === true || es_temporada === 'true' || es_temporada === '1' || es_temporada === 1);
 
   if (!nombre || !categoria_id || precio === undefined) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
@@ -627,6 +638,8 @@ export const editarProducto = async (req, res) => {
         parseFloat(precio),
         parseFloat(stock_producto ?? 0),
         imagen,
+        esNuevo,
+        esTemporada,
         id
       ]
     );
@@ -788,5 +801,20 @@ export const eliminarProducto = async (req, res) => {
       ok: false,
       message: 'Error al eliminar producto.'
     });
+  }
+};
+
+// GET /api/productos/nuevo
+export const listarProductosNuevo = async (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit ?? '8', 10), 20);
+  try {
+    const { rows } = await pool.query(PRODUCTOS_QUERIES.LIST_NUEVO, [limit]);
+    return res.status(200).json({
+      success: true,
+      products: normalizarImagenes(rows),
+    });
+  } catch (error) {
+    console.error('Error al obtener productos nuevos:', error.message);
+    return res.status(500).json({ success: false, message: 'Error al obtener productos nuevos.' });
   }
 };

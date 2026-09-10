@@ -108,6 +108,8 @@ export const PRODUCTOS_QUERIES = {
       cp.nombre AS categoria_nombre,
       p.precio,
       p.stock_producto,
+      p.es_nuevo,
+      p.es_temporada,
       p.estado,
 
       (p.stock_producto < 5) AS stock_bajo,
@@ -157,6 +159,8 @@ export const PRODUCTOS_QUERIES = {
       cp.nombre AS categoria_nombre,
       p.precio,
       p.stock_producto,
+      p.es_nuevo,
+      p.es_temporada,
       p.estado,
 
       (p.stock_producto < 5) AS stock_bajo,
@@ -213,6 +217,8 @@ export const PRODUCTOS_QUERIES = {
       cp.nombre AS categoria_nombre,
       p.precio,
       p.stock_producto,
+      p.es_nuevo,
+      p.es_temporada,
       (p.stock_producto < 5) AS stock_bajo
     FROM productos p
     LEFT JOIN categorias_producto cp
@@ -248,6 +254,8 @@ export const PRODUCTOS_QUERIES = {
       cp.nombre AS categoria_nombre,
       p.precio,
       p.stock_producto,
+      p.es_nuevo,
+      p.es_temporada,
       p.estado,
 
       (p.stock_producto < 5) AS stock_bajo,
@@ -332,9 +340,11 @@ export const PRODUCTOS_QUERIES = {
       categoria_id,
       precio,
       stock_producto,
-      imagen
+      imagen,
+      es_nuevo,
+      es_temporada
     )
-    VALUES ($1, $2, $3, $4, $5)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING *
   `,
 
@@ -344,12 +354,14 @@ export const PRODUCTOS_QUERIES = {
   UPDATE: `
     UPDATE productos
     SET
-      nombre = $1,
-      categoria_id = $2,
-      precio = $3,
-      stock_producto = $4,
-      imagen = $5
-    WHERE id_producto = $6
+      nombre          = $1,
+      categoria_id    = $2,
+      precio          = $3,
+      stock_producto  = $4,
+      imagen          = $5,
+      es_nuevo        = $6,
+      es_temporada    = $7
+    WHERE id_producto = $8
     RETURNING *
   `,
 
@@ -438,5 +450,50 @@ export const PRODUCTOS_QUERIES = {
     SELECT stock_producto
     FROM productos
     WHERE id_producto = $1
+  `,
+
+  // ─────────────────────────────────────────
+  // MIGRACIÓN: columnas es_nuevo / es_temporada
+  // ─────────────────────────────────────────
+  MIGRATE_BADGES: `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'productos' AND column_name = 'es_nuevo'
+      ) THEN
+        ALTER TABLE productos ADD COLUMN es_nuevo BOOLEAN NOT NULL DEFAULT FALSE;
+      END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'productos' AND column_name = 'es_temporada'
+      ) THEN
+        ALTER TABLE productos ADD COLUMN es_temporada BOOLEAN NOT NULL DEFAULT FALSE;
+      END IF;
+    END;
+    $$;
+  `,
+
+  // ─────────────────────────────────────────
+  // PRODUCTOS NUEVOS / TEMPORADA (endpoint público)
+  // ─────────────────────────────────────────
+  LIST_NUEVO: `
+    SELECT
+      p.id_producto,
+      p.nombre,
+      p.imagen,
+      p.categoria_id,
+      cp.nombre    AS categoria_nombre,
+      p.precio,
+      p.stock_producto,
+      p.es_nuevo,
+      p.es_temporada
+    FROM productos p
+    LEFT JOIN categorias_producto cp
+      ON cp.id_categoria = p.categoria_id
+    WHERE p.estado = 'ACTIVO'
+      AND (p.es_nuevo = TRUE OR p.es_temporada = TRUE)
+    ORDER BY p.id_producto DESC
+    LIMIT $1
   `,
 };
