@@ -110,6 +110,11 @@ import { ordersRouter, adminOrdersRouter } from './routes/orders.routes.js';
 
 const app = express();
 
+// Necesario en Render (y cualquier plataforma detrás de un proxy/load balancer)
+// para que express-rate-limit identifique correctamente la IP real del usuario
+// a partir del header X-Forwarded-For.
+app.set('trust proxy', 1);
+
 // ─────────────────────────────────────────────
 // Middleware globales
 // ─────────────────────────────────────────────
