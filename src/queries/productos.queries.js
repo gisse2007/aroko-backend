@@ -495,7 +495,6 @@ export const PRODUCTOS_QUERIES = {
       ON cp.id_categoria = p.categoria_id
     WHERE p.estado = 'ACTIVO'
       AND (p.es_nuevo = TRUE OR p.es_temporada = TRUE)
-    ORDER BY p.id_producto DESC
     ORDER BY p.es_temporada DESC, p.id_producto DESC
     LIMIT $1
   `,
