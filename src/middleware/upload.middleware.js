@@ -2,10 +2,13 @@
 
 import multer from 'multer';
 import fs from 'fs';
+import path from 'path';
 
 // ======================================
 // CREAR CARPETAS SI NO EXISTEN
 // ======================================
+
+const UPLOADS_DIR = path.resolve(process.cwd(), 'uploads');
 
 const crearCarpeta = (ruta) => {
 
@@ -17,10 +20,10 @@ const crearCarpeta = (ruta) => {
   }
 };
 
-crearCarpeta('uploads/productos');
-crearCarpeta('uploads/compras');
-crearCarpeta('uploads/comprobantes');
-crearCarpeta('uploads/comprobantes-pago');
+crearCarpeta(path.join(UPLOADS_DIR, 'productos'));
+crearCarpeta(path.join(UPLOADS_DIR, 'compras'));
+crearCarpeta(path.join(UPLOADS_DIR, 'comprobantes'));
+crearCarpeta(path.join(UPLOADS_DIR, 'comprobantes-pago'));
 
 // ======================================
 // CONFIG PRODUCTOS
@@ -29,13 +32,22 @@ crearCarpeta('uploads/comprobantes-pago');
 const storageProductos = multer.diskStorage({
 
   destination: (_req, _file, cb) => {
-    cb(null, 'uploads/productos');
+    cb(null, path.join(UPLOADS_DIR, 'productos'));
   },
 
   filename: (_req, file, cb) => {
-    // Normalizar .jfif y .pjpeg a .jpg para compatibilidad con navegadores
-    const ext = /jfif|pjpeg/i.test(file.mimetype) ? '.jpg' : file.originalname.match(/\.[^.]+$/)?.[0] ?? '';
-    const nombre = `${Date.now()}-${file.originalname.replace(/\s+/g, '-').replace(/\.[^.]+$/, '')}${ext}`;
+    const extensiones = {
+      'image/png': '.png',
+      'image/jpeg': '.jpg',
+      'image/jpg': '.jpg',
+      'image/webp': '.webp',
+      'image/jfif': '.jpg',
+      'image/pjpeg': '.jpg',
+    };
+    const ext = extensiones[file.mimetype] || '.jpg';
+    const base = path.basename(file.originalname, path.extname(file.originalname))
+      .replace(/[^a-zA-Z0-9_-]/g, '-');
+    const nombre = `${Date.now()}-${base}${ext}`;
     cb(null, nombre);
   }
 });
@@ -48,10 +60,7 @@ const storageCompras = multer.diskStorage({
 
   destination: (_req, _file, cb) => {
 
-    cb(
-      null,
-      'uploads/compras'
-    );
+    cb(null, path.join(UPLOADS_DIR, 'compras'));
   },
 
   filename: (_req, file, cb) => {

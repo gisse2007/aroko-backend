@@ -602,17 +602,25 @@ export const editarProducto = async (req, res) => {
     }
 
     let imagen = actual.rows[0].imagen;
+    const imagenesExistentes = (() => {
+      try { return JSON.parse(req.body.imagenes_existentes || '[]'); }
+      catch { return []; }
+    })();
 
     const archivos = req.files?.length ? req.files : (req.file ? [req.file] : []);
-    if (archivos.length) {
-      // Eliminar archivos viejos del disco
-      if (imagen) {
-        imagen.split('|').forEach((ruta) => {
-          const rutaVieja = path.join(process.cwd(), ruta.replace(/^\/+/, ''));
-          if (fs.existsSync(rutaVieja)) fs.unlinkSync(rutaVieja);
-        });
+    const rutasActuales = imagen ? imagen.split('|').map((ruta) => ruta.trim()).filter(Boolean) : [];
+    const rutasConservadas = new Set(
+      imagenesExistentes.map((ruta) => String(ruta).replace(/^https?:\/\/[^/]+/i, ''))
+    );
+    const rutasNuevas = archivos.map((file) => `/uploads/productos/${file.filename}`);
+    const rutasFinales = archivos.length ? rutasNuevas : rutasActuales.filter((ruta) => rutasConservadas.has(ruta));
+    imagen = rutasFinales.join('|') || null;
+
+    for (const ruta of rutasActuales) {
+      if (!rutasConservadas.has(ruta) || archivos.length) {
+        const rutaVieja = path.join(process.cwd(), ruta.replace(/^\/+/, ''));
+        if (fs.existsSync(rutaVieja)) fs.unlinkSync(rutaVieja);
       }
-      imagen = archivos.map((f) => `/uploads/productos/${f.filename}`).join('|');
     }
 
     const { rows: dup } = await client.query(
@@ -784,10 +792,17 @@ export const eliminarProducto = async (req, res) => {
       });
     }
 
+    if (rows[0].imagen) {
+      rows[0].imagen.split('|').forEach((ruta) => {
+        const archivo = path.join(process.cwd(), ruta.trim().replace(/^\/+/, ''));
+        if (fs.existsSync(archivo)) fs.unlinkSync(archivo);
+      });
+    }
+
     return res.status(200).json({
       ok: true,
       message: 'Producto eliminado correctamente.',
-      data: rows[0]
+      data: { id_producto: rows[0].id_producto, nombre: rows[0].nombre, estado: rows[0].estado }
     });
 
   } catch (error) {

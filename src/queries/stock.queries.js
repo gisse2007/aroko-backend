@@ -96,7 +96,7 @@ export const PROVEEDORES_QUERIES = {
 
   NOMBRE_EXISTS: `
     SELECT id_proveedor FROM proveedores
-    WHERE LOWER(nombre) = LOWER($1) AND id_proveedor != $2
+    WHERE LOWER(nombre) = LOWER($1) AND id_proveedor != $2 AND estado = 'ACTIVO'
   `,
 };
 
@@ -168,7 +168,7 @@ export const CAT_INSUMO_QUERIES = {
 
   NOMBRE_EXISTS: `
     SELECT id_categoria FROM categorias_insumo
-    WHERE LOWER(nombre) = LOWER($1) AND id_categoria != $2
+    WHERE LOWER(nombre) = LOWER($1) AND id_categoria != $2 AND estado = 'ACTIVO'
   `,
 };
 
@@ -313,7 +313,7 @@ export const INSUMOS_QUERIES = {
 
   NOMBRE_EXISTS: `
     SELECT id_insumo FROM insumos
-    WHERE LOWER(nombre) = LOWER($1) AND id_insumo != $2
+    WHERE LOWER(nombre) = LOWER($1) AND id_insumo != $2 AND estado = 'ACTIVO'
   `,
 
   // Suma al stock (usada por Compras al registrar)

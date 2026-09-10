@@ -392,7 +392,8 @@ export const PRODUCTOS_QUERIES = {
     RETURNING
       id_producto,
       nombre,
-      estado
+      estado,
+      imagen
   `,
 
   // ─────────────────────────────────────────
@@ -402,8 +403,9 @@ export const PRODUCTOS_QUERIES = {
     SELECT id_producto
     FROM productos
     WHERE LOWER(nombre) = LOWER($1)
-      AND id_producto != $2
-  `,
+        AND id_producto != $2
+        AND estado = 'ACTIVO'
+      `,
 
   // ══════════════════════════════════════════
   // RECETA
@@ -474,6 +476,41 @@ export const PRODUCTOS_QUERIES = {
       END IF;
     END;
     $$;
+  `,
+
+  MIGRATE_NAME_UNIQUE: `
+    ALTER TABLE productos DROP CONSTRAINT IF EXISTS productos_nombre_key;
+    CREATE UNIQUE INDEX IF NOT EXISTS ux_productos_nombre_activo
+      ON productos (LOWER(nombre))
+      WHERE estado = 'ACTIVO';
+
+    ALTER TABLE categorias_insumo DROP CONSTRAINT IF EXISTS categorias_insumo_nombre_key;
+    CREATE UNIQUE INDEX IF NOT EXISTS ux_categorias_insumo_nombre_activo
+      ON categorias_insumo (nombre) WHERE estado = 'ACTIVO';
+
+    ALTER TABLE categorias_producto DROP CONSTRAINT IF EXISTS categorias_producto_nombre_key;
+    CREATE UNIQUE INDEX IF NOT EXISTS ux_categorias_producto_nombre_activo
+      ON categorias_producto (nombre) WHERE estado = 'ACTIVO';
+
+    ALTER TABLE insumos DROP CONSTRAINT IF EXISTS insumos_nombre_key;
+    CREATE UNIQUE INDEX IF NOT EXISTS ux_insumos_nombre_activo
+      ON insumos (nombre) WHERE estado = 'ACTIVO';
+
+    ALTER TABLE roles DROP CONSTRAINT IF EXISTS roles_nombre_key;
+    CREATE UNIQUE INDEX IF NOT EXISTS ux_roles_nombre_activo
+      ON roles (nombre) WHERE estado = 'ACTIVO';
+
+    ALTER TABLE usuarios DROP CONSTRAINT IF EXISTS usuarios_correo_key;
+    CREATE UNIQUE INDEX IF NOT EXISTS ux_usuarios_correo_activo
+      ON usuarios (LOWER(correo)) WHERE estado = 'ACTIVO';
+
+    ALTER TABLE empleados DROP CONSTRAINT IF EXISTS empleados_documento_key;
+    CREATE UNIQUE INDEX IF NOT EXISTS ux_empleados_documento_activo
+      ON empleados (documento) WHERE estado = 'ACTIVO';
+
+    ALTER TABLE clientes DROP CONSTRAINT IF EXISTS clientes_documento_key;
+    CREATE UNIQUE INDEX IF NOT EXISTS ux_clientes_documento_activo
+      ON clientes (documento) WHERE estado = 'ACTIVO';
   `,
 
   // ─────────────────────────────────────────

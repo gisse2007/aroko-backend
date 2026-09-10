@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config();
 
@@ -68,6 +69,7 @@ const migraciones = [
   },
   { query: INDEXES_QUERIES.MIGRATE, nombre: 'indexes: fk, filtered columns, composite' },
   { query: PRODUCTOS_QUERIES.MIGRATE_BADGES, nombre: 'productos: es_nuevo, es_temporada' },
+  { query: PRODUCTOS_QUERIES.MIGRATE_NAME_UNIQUE, nombre: 'productos: nombre único solo activos' },
 ];
 
 async function ejecutarMigraciones() {
@@ -155,7 +157,7 @@ app.use((req, res, next) => {
 // ─────────────────────────────────────────────
 
 // Archivos subidos (imágenes de productos, comprobantes)
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
 // ─────────────────────────────────────────────
 // API

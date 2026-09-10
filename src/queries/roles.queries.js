@@ -109,7 +109,7 @@ export const ROLES_QUERIES = {
   // Verificar nombre duplicado
   NOMBRE_EXISTS: `
     SELECT id_rol FROM roles
-    WHERE LOWER(nombre) = LOWER($1) AND id_rol != $2
+    WHERE LOWER(nombre) = LOWER($1) AND id_rol != $2 AND estado = 'ACTIVO'
   `,
 };
 

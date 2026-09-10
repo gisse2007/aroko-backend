@@ -197,12 +197,12 @@ export const CLIENTES_QUERIES = {
 
   DOCUMENTO_EXISTS: `
     SELECT id_cliente FROM clientes
-    WHERE documento = $1 AND id_cliente != $2
+    WHERE documento = $1 AND id_cliente != $2 AND estado = 'ACTIVO'
   `,
 
   EMAIL_EXISTS: `
     SELECT id_cliente FROM clientes
-    WHERE LOWER(email) = LOWER($1) AND id_cliente != $2 AND email IS NOT NULL
+    WHERE LOWER(email) = LOWER($1) AND id_cliente != $2 AND email IS NOT NULL AND estado = 'ACTIVO'
   `,
 };
 
