@@ -807,6 +807,7 @@ export const eliminarProducto = async (req, res) => {
 // GET /api/productos/nuevo
 export const listarProductosNuevo = async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit ?? '8', 10), 20);
+  const limit = Math.min(parseInt(req.query.limit ?? '6', 10), 20);
   try {
     const { rows } = await pool.query(PRODUCTOS_QUERIES.LIST_NUEVO, [limit]);
     return res.status(200).json({
@@ -818,3 +819,18 @@ export const listarProductosNuevo = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Error al obtener productos nuevos.' });
   }
 };
+
+// GET /api/productos/temporada
+export const listarProductosTemporada = async (_req, res) => {
+  try {
+    const { rows } = await pool.query(PRODUCTOS_QUERIES.LIST_TEMPORADA);
+    return res.status(200).json({
+      success: true,
+      products: normalizarImagenes(rows),
+    });
+  } catch (error) {
+    console.error('Error al obtener productos de temporada:', error.message);
+    return res.status(500).json({ success: false, message: 'Error al obtener productos de temporada.' });
+  }
+};
+

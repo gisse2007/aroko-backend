@@ -11,6 +11,7 @@ import {
   productosParaSelect,
   buscarProductos,
   listarProductosNuevo,
+  listarProductosTemporada,
 } from '../controllers/productos.controller.js';
 
 import {
@@ -31,6 +32,7 @@ const router = Router();
 // ── Rutas públicas (catálogo sin login) ──────────────────────────────────────
 router.get('/search', validateSearchParams, buscarProductos);
 router.get('/nuevo', listarProductosNuevo);
+router.get('/temporada', listarProductosTemporada);
 
 // ── Rutas protegidas ─────────────────────────────────────────────────────────
 router.use(verificarToken, verificarRol('Administrador', 'Panadero'));

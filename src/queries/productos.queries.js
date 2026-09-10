@@ -224,6 +224,7 @@ export const PRODUCTOS_QUERIES = {
     LEFT JOIN categorias_producto cp
       ON cp.id_categoria = p.categoria_id
     WHERE p.estado = 'ACTIVO'
+      AND (p.es_temporada IS FALSE OR p.es_temporada IS NULL)
       AND ($1::TEXT IS NULL OR p.nombre  ILIKE $1
                             OR cp.nombre ILIKE $1)
       AND ($2::INT  IS NULL OR p.categoria_id = $2)
@@ -237,6 +238,7 @@ export const PRODUCTOS_QUERIES = {
     LEFT JOIN categorias_producto cp
       ON cp.id_categoria = p.categoria_id
     WHERE p.estado = 'ACTIVO'
+      AND (p.es_temporada IS FALSE OR p.es_temporada IS NULL)
       AND ($1::TEXT IS NULL OR p.nombre  ILIKE $1
                             OR cp.nombre ILIKE $1)
       AND ($2::INT  IS NULL OR p.categoria_id = $2)
@@ -494,6 +496,29 @@ export const PRODUCTOS_QUERIES = {
     WHERE p.estado = 'ACTIVO'
       AND (p.es_nuevo = TRUE OR p.es_temporada = TRUE)
     ORDER BY p.id_producto DESC
+    ORDER BY p.es_temporada DESC, p.id_producto DESC
     LIMIT $1
+  `,
+
+  // ─────────────────────────────────────────
+  // PRODUCTOS DE TEMPORADA EXCLUSIVAMENTE
+  // ─────────────────────────────────────────
+  LIST_TEMPORADA: `
+    SELECT
+      p.id_producto,
+      p.nombre,
+      p.imagen,
+      p.categoria_id,
+      cp.nombre    AS categoria_nombre,
+      p.precio,
+      p.stock_producto,
+      p.es_nuevo,
+      p.es_temporada
+    FROM productos p
+    LEFT JOIN categorias_producto cp
+      ON cp.id_categoria = p.categoria_id
+    WHERE p.estado = 'ACTIVO'
+      AND p.es_temporada = TRUE
+    ORDER BY p.id_producto DESC
   `,
 };
