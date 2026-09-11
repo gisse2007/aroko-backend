@@ -3,6 +3,17 @@
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+
+dotenv.config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // ======================================
 // CREAR CARPETAS SI NO EXISTEN
@@ -29,49 +40,36 @@ crearCarpeta(path.join(UPLOADS_DIR, 'comprobantes-pago'));
 // CONFIG PRODUCTOS
 // ======================================
 
-const storageProductos = multer.diskStorage({
-
-  destination: (_req, _file, cb) => {
-    cb(null, path.join(UPLOADS_DIR, 'productos'));
+const storageProductos = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'aroko/productos',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    resource_type: 'image',
+    public_id: (_req, file) => {
+      const base = path.basename(file.originalname, path.extname(file.originalname))
+        .replace(/[^a-zA-Z0-9_-]/g, '-');
+      return `${Date.now()}-${base}`;
+    },
   },
-
-  filename: (_req, file, cb) => {
-    const extensiones = {
-      'image/png': '.png',
-      'image/jpeg': '.jpg',
-      'image/jpg': '.jpg',
-      'image/webp': '.webp',
-      'image/jfif': '.jpg',
-      'image/pjpeg': '.jpg',
-    };
-    const ext = extensiones[file.mimetype] || '.jpg';
-    const base = path.basename(file.originalname, path.extname(file.originalname))
-      .replace(/[^a-zA-Z0-9_-]/g, '-');
-    const nombre = `${Date.now()}-${base}${ext}`;
-    cb(null, nombre);
-  }
 });
 
 // ======================================
 // CONFIG COMPRAS
 // ======================================
 
-const storageCompras = multer.diskStorage({
-
-  destination: (_req, _file, cb) => {
-
-    cb(null, path.join(UPLOADS_DIR, 'compras'));
+const storageCompras = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'aroko/compras',
+    resource_type: 'auto',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+    public_id: (_req, file) => {
+      const base = path.basename(file.originalname, path.extname(file.originalname))
+        .replace(/[^a-zA-Z0-9_-]/g, '-');
+      return `${Date.now()}-${base}`;
+    },
   },
-
-  filename: (_req, file, cb) => {
-
-    const nombre = `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
-
-    cb(
-      null,
-      nombre
-    );
-  }
 });
 
 // ======================================
@@ -86,6 +84,11 @@ const MIME_PERMITIDOS = [
   'image/webp',
   'image/jfif',
   'image/pjpeg',
+];
+
+const MIME_PERMITIDOS_COMPRA = [
+  ...MIME_PERMITIDOS,
+  'application/pdf',
 ];
 
 const fileFilter = (_req, file, cb) => {
@@ -132,7 +135,13 @@ export const uploadCompra = multer({
 
   storage: storageCompras,
 
-  fileFilter,
+  fileFilter: (_req, file, cb) => {
+    if (MIME_PERMITIDOS_COMPRA.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Formato no permitido: ${file.mimetype}`), false);
+    }
+  },
 
   limits: {
     fileSize: 5 * 1024 * 1024
@@ -143,9 +152,18 @@ export const uploadCompra = multer({
 // CONFIG COMPROBANTES DE PAGO (checkout)
 // ======================================
 
-const storageComprobantes = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, 'uploads/comprobantes-pago'),
-  filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`),
+const storageComprobantes = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'aroko/comprobantes-pago',
+    resource_type: 'auto',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+    public_id: (_req, file) => {
+      const base = path.basename(file.originalname, path.extname(file.originalname))
+        .replace(/[^a-zA-Z0-9_-]/g, '-');
+      return `${Date.now()}-${base}`;
+    },
+  },
 });
 
 const fileFilterComprobante = (_req, file, cb) => {

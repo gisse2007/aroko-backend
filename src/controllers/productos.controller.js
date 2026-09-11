@@ -458,7 +458,7 @@ export const crearProducto = async (req, res) => {
 
   const archivos = req.files?.length ? req.files : (req.file ? [req.file] : []);
   const imagen = archivos.length
-    ? archivos.map((f) => `/uploads/productos/${f.filename}`).join('|')
+    ? archivos.map((f) => f.secure_url || f.path).filter(Boolean).join('|')
     : null;
 
   const client = await pool.connect();
@@ -608,18 +608,24 @@ export const editarProducto = async (req, res) => {
 
     const archivos = req.files?.length ? req.files : (req.file ? [req.file] : []);
     const rutasActuales = imagen ? imagen.split('|').map((ruta) => ruta.trim()).filter(Boolean) : [];
-    const rutasConservadas = new Set(
-      imagenesExistentes.map((ruta) => String(ruta).replace(/^https?:\/\/[^/]+/i, ''))
-    );
-    const rutasNuevas = archivos.map((file) => `/uploads/productos/${file.filename}`);
+    const normalizarRutaImagen = (ruta) => {
+      const valor = String(ruta).trim();
+      try {
+        return new URL(valor).pathname;
+      } catch {
+        return valor;
+      }
+    };
+    const rutasConservadas = new Set(imagenesExistentes.map(normalizarRutaImagen));
+    const rutasNuevas = archivos.map((file) => file.secure_url || file.path).filter(Boolean);
     const rutasFinales = [
-      ...rutasActuales.filter((ruta) => rutasConservadas.has(ruta)),
+      ...rutasActuales.filter((ruta) => rutasConservadas.has(normalizarRutaImagen(ruta))),
       ...rutasNuevas,
     ].slice(0, 5);
     imagen = rutasFinales.join('|') || null;
 
     for (const ruta of rutasActuales) {
-      if (!rutasConservadas.has(ruta)) {
+      if (!rutasConservadas.has(normalizarRutaImagen(ruta)) && !/^https?:\/\//i.test(ruta)) {
         const rutaVieja = path.join(process.cwd(), ruta.replace(/^\/+/, ''));
         if (fs.existsSync(rutaVieja)) fs.unlinkSync(rutaVieja);
       }

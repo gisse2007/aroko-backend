@@ -14,7 +14,7 @@ export const crearOrder = async (req, res) => {
 
   // Log de diagnóstico — visible en consola del servidor
   console.log('[POST /api/orders] body:', JSON.stringify(req.body));
-  console.log('[POST /api/orders] file:', req.file?.filename ?? 'ninguno');
+  console.log('[POST /api/orders] file:', req.file?.path ?? 'ninguno');
   console.log('[POST /api/orders] user_id:', user_id);
 
   if (!user_id) return res.status(401).json({ ok: false, message: 'No autenticado.' });
@@ -46,7 +46,7 @@ export const crearOrder = async (req, res) => {
   // fecha_entrega opcional — el cliente minorista puede definirla al confirmar
   const fecha_entrega = req.body.fecha_entrega || null;
 
-  const paymentProof = req.file ? `/uploads/comprobantes-pago/${req.file.filename}` : null;
+  const paymentProof = req.file ? (req.file.path || req.file.secure_url) : null;
 
   const client = await pool.connect();
   try {

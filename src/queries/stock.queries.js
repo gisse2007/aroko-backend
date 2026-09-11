@@ -177,6 +177,12 @@ export const CAT_INSUMO_QUERIES = {
 // ══════════════════════════════════════════════
 export const INSUMOS_QUERIES = {
 
+  MIGRATE: `
+    ALTER TABLE insumos
+      ADD COLUMN IF NOT EXISTS presentacion_nombre VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS presentacion_contenido NUMERIC(10,2)
+  `,
+
   // Solo ACTIVOS — alias nombre AS nombre_insumo para que coincida con el frontend
   LIST: `
     SELECT
@@ -185,6 +191,8 @@ export const INSUMOS_QUERIES = {
       i.categoria_id,
       ci.nombre       AS categoria_nombre,
       i.unidad_medida,
+      i.presentacion_nombre,
+      i.presentacion_contenido,
       i.stock_actual,
       i.stock_minimo,
       i.precio_unitario,
@@ -205,6 +213,8 @@ export const INSUMOS_QUERIES = {
       i.categoria_id,
       ci.nombre       AS categoria_nombre,
       i.unidad_medida,
+      i.presentacion_nombre,
+      i.presentacion_contenido,
       i.stock_actual,
       i.stock_minimo,
       i.precio_unitario,
@@ -227,6 +237,8 @@ export const INSUMOS_QUERIES = {
       i.categoria_id,
       ci.nombre       AS categoria_nombre,
       i.unidad_medida,
+      i.presentacion_nombre,
+      i.presentacion_contenido,
       i.stock_actual,
       i.stock_minimo,
       i.precio_unitario,
@@ -248,6 +260,8 @@ export const INSUMOS_QUERIES = {
       i.categoria_id,
       ci.nombre       AS categoria_nombre,
       i.unidad_medida,
+      i.presentacion_nombre,
+      i.presentacion_contenido,
       i.stock_actual,
       i.stock_minimo,
       i.precio_unitario,
@@ -264,6 +278,8 @@ export const INSUMOS_QUERIES = {
       i.id_insumo,
       i.nombre        AS nombre_insumo,
       i.unidad_medida,
+      i.presentacion_nombre,
+      i.presentacion_contenido,
       i.stock_actual,
       i.stock_minimo,
       ci.nombre       AS categoria_nombre
@@ -275,16 +291,21 @@ export const INSUMOS_QUERIES = {
   `,
 
   CREATE: `
-    INSERT INTO insumos (nombre, categoria_id, unidad_medida, stock_actual, stock_minimo, precio_unitario)
-    VALUES ($1, $2, $3, $4, $5, $6)
+    INSERT INTO insumos (
+      nombre, categoria_id, unidad_medida,
+      presentacion_nombre, presentacion_contenido,
+      stock_actual, stock_minimo, precio_unitario
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING *
   `,
 
   UPDATE: `
     UPDATE insumos
     SET nombre = $1, categoria_id = $2, unidad_medida = $3,
-        stock_actual = $4, stock_minimo = $5, precio_unitario = $6
-    WHERE id_insumo = $7
+      presentacion_nombre = $4, presentacion_contenido = $5,
+      stock_actual = $6, stock_minimo = $7, precio_unitario = $8
+    WHERE id_insumo = $9
     RETURNING *
   `,
 
@@ -335,7 +356,8 @@ export const INSUMOS_QUERIES = {
 
   // Búsqueda tolerante por nombre (normaliza espacios y mayusculas)
   FIND_BY_NOMBRE: `
-    SELECT id_insumo, nombre, stock_actual, categoria_id, unidad_medida, precio_unitario, estado
+        SELECT id_insumo, nombre, stock_actual, categoria_id, unidad_medida,
+          presentacion_nombre, presentacion_contenido, precio_unitario, estado
     FROM insumos
     WHERE LOWER(TRIM(nombre)) = LOWER(TRIM($1))
     LIMIT 1

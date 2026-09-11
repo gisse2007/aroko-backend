@@ -321,13 +321,51 @@ export const obtenerInsumo = async (req, res) => {
   }
 };
 
+function parsePresentacion(body) {
+  const nombre = String(body.presentacion_nombre ?? '').trim() || null;
+  const contenidoRaw = body.presentacion_contenido;
+  const contenido = contenidoRaw === '' || contenidoRaw == null
+    ? null
+    : Number(contenidoRaw);
+
+  if ((nombre && !Number.isFinite(contenido)) || (!nombre && contenido != null)) {
+    return { error: 'La presentación estándar debe incluir nombre y contenido.' };
+  }
+  if (contenido != null && contenido <= 0) {
+    return { error: 'El contenido estándar debe ser mayor a cero.' };
+  }
+  return { nombre, contenido };
+}
+
+function parseStockMinimo(body, presentacionContenido) {
+  const valor = Number(body.stock_minimo);
+  if (!Number.isFinite(valor) || valor < 0) {
+    return { error: 'El stock mínimo debe ser un número válido no negativo.' };
+  }
+
+  if (body.stock_minimo_unidad === 'presentacion') {
+    if (!presentacionContenido) {
+      return { error: 'Define el contenido estándar para usar presentaciones en el stock mínimo.' };
+    }
+    return { value: valor * presentacionContenido };
+  }
+  return { value: valor };
+}
+
 // POST /api/insumos
-// Body: { nombre_insumo, categoria_id, unidad_medida, stock_actual, stock_minimo, precio_unitario }
+// Body: { nombre_insumo, categoria_id, unidad_medida, stock_actual, stock_minimo,
+//         stock_minimo_unidad, presentacion_nombre, presentacion_contenido, precio_unitario }
 export const crearInsumo = async (req, res) => {
-  const { nombre_insumo, categoria_id, unidad_medida, stock_actual, stock_minimo, precio_unitario } = req.body;
+  const { nombre_insumo, categoria_id, unidad_medida, stock_actual, precio_unitario } = req.body;
 
   if (!nombre_insumo || !categoria_id || !unidad_medida) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
+  }
+
+  const presentacion = parsePresentacion(req.body);
+  const stockMinimo = parseStockMinimo(req.body, presentacion.contenido);
+  if (presentacion.error || stockMinimo.error) {
+    return res.status(400).json({ ok: false, message: presentacion.error || stockMinimo.error });
   }
 
   try {
@@ -340,8 +378,10 @@ export const crearInsumo = async (req, res) => {
       nombre_insumo.trim(),
       categoria_id,
       unidad_medida.trim(),
+      presentacion.nombre,
+      presentacion.contenido,
       parseFloat(stock_actual)    || 0,
-      parseFloat(stock_minimo)    || 0,
+      stockMinimo.value,
       parseFloat(precio_unitario) || 0,
     ]);
 
@@ -355,10 +395,16 @@ export const crearInsumo = async (req, res) => {
 // PUT /api/insumos/:id
 export const editarInsumo = async (req, res) => {
   const { id } = req.params;
-  const { nombre_insumo, categoria_id, unidad_medida, stock_actual, stock_minimo, precio_unitario } = req.body;
+  const { nombre_insumo, categoria_id, unidad_medida, stock_actual, precio_unitario } = req.body;
 
   if (!nombre_insumo || !categoria_id || !unidad_medida) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
+  }
+
+  const presentacion = parsePresentacion(req.body);
+  const stockMinimo = parseStockMinimo(req.body, presentacion.contenido);
+  if (presentacion.error || stockMinimo.error) {
+    return res.status(400).json({ ok: false, message: presentacion.error || stockMinimo.error });
   }
 
   try {
@@ -371,8 +417,10 @@ export const editarInsumo = async (req, res) => {
       nombre_insumo.trim(),
       categoria_id,
       unidad_medida.trim(),
+      presentacion.nombre,
+      presentacion.contenido,
       parseFloat(stock_actual)    || 0,
-      parseFloat(stock_minimo)    || 0,
+      stockMinimo.value,
       parseFloat(precio_unitario) || 0,
       id,
     ]);

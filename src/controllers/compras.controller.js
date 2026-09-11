@@ -78,7 +78,7 @@ export const obtenerCompra = async (req, res) => {
 // ─────────────────────────────────────────────
 export const crearCompra = async (req, res) => {
   const { proveedor_id, empleado_id, numero_factura, iva = 19, detalle } = req.body;
-  const foto = req.file ? `uploads/comprobantes/${req.file.filename}` : null;
+  const foto = req.file ? (req.file.path || req.file.secure_url) : null;
 
   if (!proveedor_id || !empleado_id || !numero_factura || !detalle) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });

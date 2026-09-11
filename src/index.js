@@ -19,7 +19,7 @@ import {
 
 import { VENTAS_QUERIES } from './queries/ventas.queries.js';
 import { DOMICILIOS_QUERIES } from './queries/domicilios.queries.js';
-import { MOVIMIENTOS_QUERIES } from './queries/stock.queries.js';
+import { MOVIMIENTOS_QUERIES, INSUMOS_QUERIES } from './queries/stock.queries.js';
 import { ORDERS_QUERIES } from './queries/orders.queries.js';
 import { INDEXES_QUERIES } from './queries/indexes.queries.js';
 import { PRODUCTOS_QUERIES } from './queries/productos.queries.js';
@@ -56,6 +56,7 @@ const migraciones = [
   { query: VENTAS_QUERIES.MIGRATE,               nombre: 'ventas columns' },
   { query: DOMICILIOS_QUERIES.MIGRATE,           nombre: 'domicilios columns' },
   { query: MOVIMIENTOS_QUERIES.MIGRATE,           nombre: 'movimientos_inventario table' },
+  { query: INSUMOS_QUERIES.MIGRATE,               nombre: 'insumos: presentación estándar' },
   { query: ORDERS_QUERIES.MIGRATE,                nombre: 'orders / order_items tables' },
   // Integridad: primero desvincular no-clientes, luego vincular huérfanos por correo
   { query: CLIENTES_QUERIES.REMOVE_NON_CLIENTE_ROLE, nombre: 'clientes: desvincular no-clientes' },
