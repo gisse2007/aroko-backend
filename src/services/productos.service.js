@@ -16,7 +16,7 @@ const ORDER_MAP = {
  */
 export function buildImageUrl(imagen) {
   if (!imagen) return null;
-  const base = (process.env.BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const base = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || process.env.BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
   const rutas = imagen.split('|').map((r) => r.trim()).filter(Boolean);
   const urls = rutas.map((r) => {
     if (/^https?:\/\//i.test(r)) return r;
@@ -31,7 +31,7 @@ export function buildImageUrl(imagen) {
  */
 export function buildImageArray(imagen) {
   if (!imagen) return [];
-  const base = (process.env.BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const base = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || process.env.BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
   const rutas = imagen.split('|').map((r) => r.trim()).filter(Boolean);
   return rutas.map((r) => {
     if (/^https?:\/\//i.test(r)) return r;

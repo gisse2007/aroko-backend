@@ -612,11 +612,14 @@ export const editarProducto = async (req, res) => {
       imagenesExistentes.map((ruta) => String(ruta).replace(/^https?:\/\/[^/]+/i, ''))
     );
     const rutasNuevas = archivos.map((file) => `/uploads/productos/${file.filename}`);
-    const rutasFinales = archivos.length ? rutasNuevas : rutasActuales.filter((ruta) => rutasConservadas.has(ruta));
+    const rutasFinales = [
+      ...rutasActuales.filter((ruta) => rutasConservadas.has(ruta)),
+      ...rutasNuevas,
+    ].slice(0, 5);
     imagen = rutasFinales.join('|') || null;
 
     for (const ruta of rutasActuales) {
-      if (!rutasConservadas.has(ruta) || archivos.length) {
+      if (!rutasConservadas.has(ruta)) {
         const rutaVieja = path.join(process.cwd(), ruta.replace(/^\/+/, ''));
         if (fs.existsSync(rutaVieja)) fs.unlinkSync(rutaVieja);
       }
