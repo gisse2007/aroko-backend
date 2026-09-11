@@ -19,26 +19,27 @@ const transporter = nodemailer.createTransport({
 });
 
 const enviarEmail = async (opciones) => {
-  const resendKey = process.env.RESEND_API_KEY;
-  if (resendKey) {
-    const response = await fetch("https://api.resend.com/emails", {
+  const brevoKey = process.env.BREVO_API_KEY;
+  if (brevoKey) {
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${resendKey}`,
+        "api-key": brevoKey,
         "Content-Type": "application/json",
+        "Accept": "application/json",
       },
       body: JSON.stringify({
-        from: opciones.from || EMAIL_FROM,
-        to: [opciones.to],
+        sender: { name: "Aroko", email: process.env.BREVO_FROM || EMAIL_FROM },
+        to: [{ email: opciones.to }],
         subject: opciones.subject,
-        html: opciones.html,
+        htmlContent: opciones.html,
       }),
       signal: AbortSignal.timeout(15000),
     });
 
     if (!response.ok) {
       const detail = await response.text();
-      throw new Error(`Resend respondió ${response.status}: ${detail}`);
+      throw new Error(`Brevo respondió ${response.status}: ${detail}`);
     }
     return response.json();
   }
@@ -46,7 +47,7 @@ const enviarEmail = async (opciones) => {
   const usuario = process.env.SMTP_USER || process.env.EMAIL_USER;
   const contrasena = process.env.SMTP_PASS || process.env.EMAIL_PASS;
   if (!usuario || !contrasena) {
-    throw new Error("Configuración de correo incompleta: define RESEND_API_KEY/RESEND_FROM o SMTP_USER/SMTP_PASS.");
+    throw new Error("Configuración de correo incompleta: define BREVO_API_KEY/BREVO_FROM o SMTP_USER/SMTP_PASS.");
   }
 
   return transporter.sendMail({
@@ -55,7 +56,7 @@ const enviarEmail = async (opciones) => {
   });
 };
 
-const EMAIL_FROM = process.env.RESEND_FROM || process.env.SMTP_USER || process.env.EMAIL_USER || "onboarding@resend.dev";
+const EMAIL_FROM = process.env.BREVO_FROM || process.env.SMTP_USER || process.env.EMAIL_USER || "arokosas@gmail.com";
 
 // ─── Paleta exacta de la página ────────────────────────────────────────────
 // --accent:     #3BBEDA  (azul principal)
@@ -665,4 +666,4 @@ export const enviarCorreoRecuperacion = async ({ correo, codigo }) => {
       accentColor: BASE.accent,
     }),
   });
-};
+}
