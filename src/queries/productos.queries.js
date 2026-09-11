@@ -14,6 +14,7 @@ export const CAT_PRODUCTO_QUERIES = {
     FROM categorias_producto cp
     LEFT JOIN productos p
       ON p.categoria_id = cp.id_categoria
+      AND p.estado = 'ACTIVO'
     GROUP BY cp.id_categoria
     ORDER BY cp.id_categoria
   `,
@@ -37,6 +38,7 @@ export const CAT_PRODUCTO_QUERIES = {
     FROM categorias_producto cp
     LEFT JOIN productos p
       ON p.categoria_id = cp.id_categoria
+      AND p.estado = 'ACTIVO'
     WHERE cp.id_categoria = $1
     GROUP BY cp.id_categoria
   `,
@@ -532,7 +534,7 @@ export const PRODUCTOS_QUERIES = {
       ON cp.id_categoria = p.categoria_id
     WHERE p.estado = 'ACTIVO'
       AND (p.es_nuevo = TRUE OR p.es_temporada = TRUE)
-    ORDER BY p.es_temporada DESC, p.id_producto DESC
+    ORDER BY p.id_producto DESC
     LIMIT $1
   `,
 

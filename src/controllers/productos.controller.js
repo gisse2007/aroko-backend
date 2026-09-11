@@ -428,14 +428,13 @@ export const crearProducto = async (req, res) => {
     precio,
     stock_producto = 0,
     receta = [],
-    es_nuevo = false,
     es_temporada = false,
   } = req.body;
 
   const categoriaId = Number(categoria_id);
   const precioVal   = Number(precio);
   const stockVal    = Number(stock_producto ?? 0);
-  const esNuevo     = (es_nuevo === true || es_nuevo === 'true' || es_nuevo === '1' || es_nuevo === 1);
+  const esNuevo     = true;
   const esTemporada = (es_temporada === true || es_temporada === 'true' || es_temporada === '1' || es_temporada === 1);
 
   if (!nombre || !categoria_id || precio === undefined ||
