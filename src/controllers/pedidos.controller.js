@@ -59,11 +59,14 @@ export const obtenerCliente = async (req, res) => {
 
 // POST /api/clientes
 // Body: { nombre, tipo_documento, numero_documento, telefono, email, direccion, usuario_id? }
+// Este flujo crea un cliente nuevo y valida que no exista duplicado.
+// Se hace una doble revisión: documento y correo. Además, si el cliente
+// viene asociado a un usuario con rol Cliente, también se valida esa relación.
 export const crearCliente = async (req, res) => {
   const { nombre, tipo_documento = 'CC', numero_documento, telefono, email, direccion, usuario_id } = req.body;
 
-  if (!nombre || !numero_documento) {
-    return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
+  if (!nombre || !tipo_documento || !numero_documento || !telefono || !email || !direccion) {
+    return res.status(400).json({ ok: false, message: 'Todos los campos obligatorios deben completarse.' });
   }
 
   const client = await pool.connect();
@@ -140,8 +143,8 @@ export const editarCliente = async (req, res) => {
   const { id } = req.params;
   const { nombre, tipo_documento = 'CC', numero_documento, telefono, email, direccion } = req.body;
 
-  if (!nombre || !numero_documento) {
-    return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
+  if (!nombre || !tipo_documento || !numero_documento || !telefono || !email || !direccion) {
+    return res.status(400).json({ ok: false, message: 'Todos los campos obligatorios deben completarse.' });
   }
 
   const client = await pool.connect();

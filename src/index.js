@@ -27,6 +27,10 @@ import { PRODUCTOS_QUERIES } from './queries/productos.queries.js';
 // ─────────────────────────────────────────────
 // Migraciones automáticas
 // ─────────────────────────────────────────────
+// Este bloque se ejecuta al arrancar la API para dejar la base de datos
+// en un estado compatible con el sistema. Es como una "puesta a punto"
+// del proyecto: agrega columnas faltantes, corrige nombres de campos y
+// deja listas las tablas que el frontend usa.
 
 const migraciones = [
   { query: AUTH_QUERIES.ADD_RESET_TOKEN,        nombre: 'reset_token' },
@@ -87,6 +91,10 @@ async function ejecutarMigraciones() {
 // ─────────────────────────────────────────────
 // Rutas
 // ─────────────────────────────────────────────
+// Aquí se montan todos los módulos del sistema. Cada grupo de rutas
+// representa una parte del negocio: usuarios, compras, inventario,
+// ventas, pedidos, clientes y reportes. Esto es el "mapa" principal
+// de la API.
 
 import authRoutes from './routes/auth.routes.js';
 import rolesRoutes from './routes/roles.routes.js';
