@@ -1,5 +1,3 @@
-// src/controllers/inventario.controller.js
-
 import pool from '../config/db.js';
 import {
   PROVEEDORES_QUERIES,
