@@ -187,7 +187,7 @@ export const crearOrder = async (req, res) => {
           `INSERT INTO domicilios
              (venta_id, cliente_id, empleado_id, barrio, direccion, referencias)
            VALUES ($1, $2, $3, $4, $5, $6)`,
-          [venta_id, cliente_id, empleado_id, null, req.body.direccion.trim(), null]
+          [venta_id, cliente_id, empleado_id, req.body.barrio?.trim() || null, req.body.direccion.trim(), null]
         );
       }
 
