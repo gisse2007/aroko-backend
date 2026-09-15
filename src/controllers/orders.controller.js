@@ -51,6 +51,7 @@ export const crearOrder = async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    await client.query('SELECT pg_advisory_xact_lock($1::bigint)', [42801]);
 
     // Obtener precios reales desde la BD
     const productIds = items.map(i => i.productId);
