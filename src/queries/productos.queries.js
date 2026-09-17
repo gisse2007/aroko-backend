@@ -105,6 +105,7 @@ export const PRODUCTOS_QUERIES = {
     SELECT
       p.id_producto,
       p.nombre,
+      p.descripcion,
       p.imagen,
       p.categoria_id,
       cp.nombre AS categoria_nombre,
@@ -156,6 +157,7 @@ export const PRODUCTOS_QUERIES = {
     SELECT
       p.id_producto,
       p.nombre,
+      p.descripcion,
       p.imagen,
       p.categoria_id,
       cp.nombre AS categoria_nombre,
@@ -214,6 +216,7 @@ export const PRODUCTOS_QUERIES = {
     SELECT
       p.id_producto,
       p.nombre,
+      p.descripcion,
       p.imagen,
       p.categoria_id,
       cp.nombre AS categoria_nombre,
@@ -253,6 +256,7 @@ export const PRODUCTOS_QUERIES = {
     SELECT
       p.id_producto,
       p.nombre,
+      p.descripcion,
       p.imagen,
       p.categoria_id,
       cp.nombre AS categoria_nombre,
@@ -341,6 +345,7 @@ export const PRODUCTOS_QUERIES = {
   CREATE: `
     INSERT INTO productos (
       nombre,
+      descripcion,
       categoria_id,
       precio,
       stock_producto,
@@ -348,7 +353,7 @@ export const PRODUCTOS_QUERIES = {
       es_nuevo,
       es_temporada
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING *
   `,
 
@@ -359,13 +364,14 @@ export const PRODUCTOS_QUERIES = {
     UPDATE productos
     SET
       nombre          = $1,
-      categoria_id    = $2,
-      precio          = $3,
-      stock_producto  = $4,
-      imagen          = $5,
-      es_nuevo        = $6,
-      es_temporada    = $7
-    WHERE id_producto = $8
+      descripcion     = $2,
+      categoria_id    = $3,
+      precio          = $4,
+      stock_producto  = $5,
+      imagen          = $6,
+      es_nuevo        = $7,
+      es_temporada    = $8
+    WHERE id_producto = $9
     RETURNING *
   `,
 
@@ -515,6 +521,10 @@ export const PRODUCTOS_QUERIES = {
       ON clientes (documento) WHERE estado = 'ACTIVO';
   `,
 
+  MIGRATE_DESCRIPCION: `
+    ALTER TABLE productos ADD COLUMN IF NOT EXISTS descripcion TEXT;
+  `,
+
   // ─────────────────────────────────────────
   // PRODUCTOS NUEVOS / TEMPORADA (endpoint público)
   // ─────────────────────────────────────────
@@ -522,6 +532,7 @@ export const PRODUCTOS_QUERIES = {
     SELECT
       p.id_producto,
       p.nombre,
+      p.descripcion,
       p.imagen,
       p.categoria_id,
       cp.nombre    AS categoria_nombre,
@@ -545,6 +556,7 @@ export const PRODUCTOS_QUERIES = {
     SELECT
       p.id_producto,
       p.nombre,
+      p.descripcion,
       p.imagen,
       p.categoria_id,
       cp.nombre    AS categoria_nombre,

@@ -424,6 +424,7 @@ export const obtenerProducto = async (req, res) => {
 export const crearProducto = async (req, res) => {
   const {
     nombre,
+    descripcion,
     categoria_id,
     precio,
     stock_producto = 0,
@@ -440,6 +441,10 @@ export const crearProducto = async (req, res) => {
   if (!nombre || !categoria_id || precio === undefined ||
       Number.isNaN(precioVal) || Number.isNaN(categoriaId) || Number.isNaN(stockVal)) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos o inválidos.' });
+  }
+
+  if (!descripcion || !descripcion.trim()) {
+    return res.status(400).json({ ok: false, message: 'La descripción es obligatoria.' });
   }
 
   if (precioVal < 0) {
@@ -483,6 +488,7 @@ export const crearProducto = async (req, res) => {
       PRODUCTOS_QUERIES.CREATE,
       [
         nombre.trim(),
+        descripcion.trim(),
         categoriaId,
         precioVal,
         stockVal,
@@ -557,6 +563,7 @@ export const editarProducto = async (req, res) => {
 
   const {
     nombre,
+    descripcion,
     categoria_id,
     precio,
     stock_producto,
@@ -570,6 +577,10 @@ export const editarProducto = async (req, res) => {
 
   if (!nombre || !categoria_id || precio === undefined) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
+  }
+
+  if (!descripcion || !descripcion.trim()) {
+    return res.status(400).json({ ok: false, message: 'La descripción es obligatoria.' });
   }
 
   if (parseFloat(precio) < 0) {
@@ -650,6 +661,7 @@ export const editarProducto = async (req, res) => {
       PRODUCTOS_QUERIES.UPDATE,
       [
         nombre.trim(),
+        descripcion.trim(),
         categoria_id,
         parseFloat(precio),
         parseFloat(stock_producto ?? 0),

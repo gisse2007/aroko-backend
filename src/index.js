@@ -78,6 +78,7 @@ const migraciones = [
   { query: INDEXES_QUERIES.MIGRATE, nombre: 'indexes: fk, filtered columns, composite' },
   { query: PRODUCTOS_QUERIES.MIGRATE_BADGES, nombre: 'productos: es_nuevo, es_temporada' },
   { query: PRODUCTOS_QUERIES.MIGRATE_NAME_UNIQUE, nombre: 'productos: nombre único solo activos' },
+  { query: PRODUCTOS_QUERIES.MIGRATE_DESCRIPCION, nombre: 'productos: descripcion' },
   { query: NOTIFICACIONES_QUERIES.MIGRATE, nombre: 'notificaciones table' },
 ];
 
