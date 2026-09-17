@@ -6,6 +6,7 @@ import { USUARIOS_QUERIES, EMPLEADOS_QUERIES } from '../queries/usuarios.queries
 import { CLIENTES_QUERIES } from '../queries/pedidos.queries.js';
 import { enviarCorreoCredenciales, generarContrasena } from '../services/email.service.js';
 import { crearNotificacion } from '../services/notificaciones.service.js';
+import { esNombreValido, MENSAJE_NOMBRE_INVALIDO } from '../utils/validarNombre.js';
 
 const ROL_CLIENTE_NOMBRE = 'Cliente';
 
@@ -65,6 +66,9 @@ export const crearUsuario = async (req, res) => {
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
     return res.status(400).json({ ok: false, message: 'El correo no es válido.' });
+  }
+  if (nombre_usuario && !esNombreValido(nombre_usuario)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
 
   const contrasenaGenerada = contrasenaBody || generarContrasena(10);
@@ -145,6 +149,9 @@ export const editarUsuario = async (req, res) => {
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
     return res.status(400).json({ ok: false, message: 'El correo no es válido (Sin @).' });
+  }
+  if (nombre_usuario && !esNombreValido(nombre_usuario)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
 
   const client = await pool.connect();
@@ -376,6 +383,9 @@ export const crearEmpleado = async (req, res) => {
   if (!nombre || !documento) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
   }
+  if (!esNombreValido(nombre)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
+  }
   if (tieneCredenciales && (!correo_acceso || !rol_id)) {
     return res.status(400).json({ ok: false, message: 'Las credenciales requieren correo_acceso y rol_id.' });
   }
@@ -468,6 +478,9 @@ export const editarEmpleado = async (req, res) => {
 
   if (!nombre || !documento) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
+  }
+  if (!esNombreValido(nombre)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
   try {
     const { rows: dupDoc } = await pool.query(EMPLEADOS_QUERIES.DOCUMENTO_EXISTS, [documento.trim(), id]);

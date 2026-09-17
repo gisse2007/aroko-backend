@@ -5,6 +5,7 @@ import { CLIENTES_QUERIES, PEDIDOS_QUERIES } from '../queries/pedidos.queries.js
 import { ORDERS_QUERIES } from '../queries/orders.queries.js';
 import { enviarCorreoFechaEntrega } from '../services/email.service.js';
 import { crearNotificacion } from '../services/notificaciones.service.js';
+import { esNombreValido, MENSAJE_NOMBRE_INVALIDO } from '../utils/validarNombre.js';
 
 // Etiquetas legibles para el mensaje de notificación al cliente
 const ESTADO_PEDIDO_LABEL = {
@@ -79,6 +80,9 @@ export const crearCliente = async (req, res) => {
 
   if (!nombre || !tipo_documento || !numero_documento || !telefono || !email || !direccion) {
     return res.status(400).json({ ok: false, message: 'Todos los campos obligatorios deben completarse.' });
+  }
+  if (!esNombreValido(nombre)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
 
   const client = await pool.connect();
@@ -157,6 +161,9 @@ export const editarCliente = async (req, res) => {
 
   if (!nombre || !tipo_documento || !numero_documento || !telefono || !email || !direccion) {
     return res.status(400).json({ ok: false, message: 'Todos los campos obligatorios deben completarse.' });
+  }
+  if (!esNombreValido(nombre)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
 
   const client = await pool.connect();
@@ -279,6 +286,9 @@ export const editarPerfilCliente = async (req, res) => {
   const { nombre, telefono, direccion, email, tipo_documento, documento } = req.body;
   if (!nombre) {
     return res.status(400).json({ ok: false, message: 'El nombre es obligatorio.' });
+  }
+  if (!esNombreValido(nombre)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
 
   const TIPOS_DOCUMENTO_VALIDOS = ['CC', 'TI', 'CE', 'Pasaporte'];

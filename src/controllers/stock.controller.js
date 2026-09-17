@@ -4,6 +4,7 @@ import {
   CAT_INSUMO_QUERIES,
   INSUMOS_QUERIES,
 } from '../queries/stock.queries.js';
+import { esNombreValido, MENSAJE_NOMBRE_INVALIDO } from '../utils/validarNombre.js';
 
 // ══════════════════════════════════════════════
 //  PROVEEDORES
@@ -50,6 +51,9 @@ export const crearProveedor = async (req, res) => {
   if (!empleado_id || !nombre_proveedor) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
   }
+  if (!esNombreValido(nombre_proveedor)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
+  }
 
   try {
     const { rows: dup } = await pool.query(PROVEEDORES_QUERIES.NOMBRE_EXISTS, [nombre_proveedor.trim(), 0]);
@@ -79,6 +83,9 @@ export const editarProveedor = async (req, res) => {
 
   if (!empleado_id || !nombre_proveedor) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
+  }
+  if (!esNombreValido(nombre_proveedor)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
 
   try {
@@ -188,6 +195,9 @@ export const crearCategoriaInsumo = async (req, res) => {
   if (!nombre) {
     return res.status(400).json({ ok: false, message: 'El nombre de la categoría es obligatorio.' });
   }
+  if (!esNombreValido(nombre)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
+  }
   try {
     const { rows: dup } = await pool.query(CAT_INSUMO_QUERIES.NOMBRE_EXISTS, [nombre.trim(), 0]);
     if (dup.length > 0) {
@@ -208,6 +218,9 @@ export const editarCategoriaInsumo = async (req, res) => {
   const { nombre } = req.body;
   if (!nombre) {
     return res.status(400).json({ ok: false, message: 'El nombre de la categoría es obligatorio.' });
+  }
+  if (!esNombreValido(nombre)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
   try {
     const { rows: dup } = await pool.query(CAT_INSUMO_QUERIES.NOMBRE_EXISTS, [nombre.trim(), id]);
@@ -359,6 +372,9 @@ export const crearInsumo = async (req, res) => {
   if (!nombre_insumo || !categoria_id || !unidad_medida) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
   }
+  if (!esNombreValido(nombre_insumo)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
+  }
 
   const presentacion = parsePresentacion(req.body);
   const stockMinimo = parseStockMinimo(req.body, presentacion.contenido);
@@ -397,6 +413,9 @@ export const editarInsumo = async (req, res) => {
 
   if (!nombre_insumo || !categoria_id || !unidad_medida) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
+  }
+  if (!esNombreValido(nombre_insumo)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
 
   const presentacion = parsePresentacion(req.body);

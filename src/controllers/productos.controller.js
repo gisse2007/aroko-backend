@@ -10,6 +10,7 @@ import {
 } from '../queries/productos.queries.js';
 
 import { buscarProductosPaginados, buildImageArray, buildImageUrl, normalizarImagenes } from '../services/productos.service.js';
+import { esNombreValido, MENSAJE_NOMBRE_INVALIDO } from '../utils/validarNombre.js';
 
 // ══════════════════════════════════════════════
 //  CATEGORÍAS DE PRODUCTO
@@ -97,6 +98,10 @@ export const crearCategoriaProducto = async (req, res) => {
     });
   }
 
+  if (!esNombreValido(nombre)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
+  }
+
   try {
 
     const { rows: dup } = await pool.query(
@@ -150,6 +155,10 @@ export const editarCategoriaProducto = async (req, res) => {
       ok: false,
       message: 'El nombre es obligatorio.'
     });
+  }
+
+  if (!esNombreValido(nombre)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
 
   try {
@@ -443,6 +452,10 @@ export const crearProducto = async (req, res) => {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos o inválidos.' });
   }
 
+  if (!esNombreValido(nombre)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
+  }
+
   if (!descripcion || !descripcion.trim()) {
     return res.status(400).json({ ok: false, message: 'La descripción es obligatoria.' });
   }
@@ -577,6 +590,10 @@ export const editarProducto = async (req, res) => {
 
   if (!nombre || !categoria_id || precio === undefined) {
     return res.status(400).json({ ok: false, message: 'Campos obligatorios incompletos.' });
+  }
+
+  if (!esNombreValido(nombre)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
 
   if (!descripcion || !descripcion.trim()) {

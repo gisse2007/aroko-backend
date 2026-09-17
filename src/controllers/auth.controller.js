@@ -8,6 +8,7 @@ import pool from '../config/db.js';
 import { AUTH_QUERIES } from '../queries/auth.queries.js';
 import { enviarCorreoBienvenida, enviarCorreoRecuperacion } from '../services/email.service.js';
 import { crearNotificacion } from '../services/notificaciones.service.js';
+import { esNombreValido, MENSAJE_NOMBRE_INVALIDO } from '../utils/validarNombre.js';
 
 
 function normalizarPermisos(permisos) {
@@ -133,6 +134,10 @@ export const register = async (req, res) => {
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correoNorm)) {
     return res.status(400).json({ ok: false, message: 'El correo no tiene un formato válido.' });
+  }
+
+  if (!esNombreValido(nombre)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
 
   if (!TIPOS_DOCUMENTO_VALIDOS.includes(tipo_documento)) {
@@ -499,6 +504,10 @@ export const actualizarPerfil = async (req, res) => {
 
   if (!nombre_usuario || !correo) {
     return res.status(400).json({ ok: false, message: 'Nombre y correo son obligatorios.' });
+  }
+
+  if (!esNombreValido(nombre_usuario)) {
+    return res.status(400).json({ ok: false, message: MENSAJE_NOMBRE_INVALIDO });
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
