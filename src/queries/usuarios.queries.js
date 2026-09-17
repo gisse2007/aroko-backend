@@ -144,9 +144,12 @@ export const USUARIOS_QUERIES = {
   `,
 
   // $1 correo $2 rol_id $3 nombre_usuario $4 telefono $5 estado $6 hash $7 id
+  // Incrementa token_version: invalida cualquier sesión activa abierta
+  // con la contraseña anterior (otras pestañas/dispositivos).
   UPDATE_WITH_PASSWORD: `
     UPDATE usuarios
-    SET correo = $1, rol_id = $2, nombre_usuario = $3, telefono = $4, estado = $5, contrasena = $6
+    SET correo = $1, rol_id = $2, nombre_usuario = $3, telefono = $4, estado = $5, contrasena = $6,
+        token_version = COALESCE(token_version, 0) + 1
     WHERE id_usuario = $7
     RETURNING id_usuario, correo, nombre_usuario, telefono, rol_id, estado, created_at
   `,

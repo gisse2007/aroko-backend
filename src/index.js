@@ -23,6 +23,7 @@ import { MOVIMIENTOS_QUERIES, INSUMOS_QUERIES } from './queries/stock.queries.js
 import { ORDERS_QUERIES } from './queries/orders.queries.js';
 import { INDEXES_QUERIES } from './queries/indexes.queries.js';
 import { PRODUCTOS_QUERIES } from './queries/productos.queries.js';
+import { NOTIFICACIONES_QUERIES } from './queries/notificaciones.queries.js';
 
 // ─────────────────────────────────────────────
 // Migraciones automáticas
@@ -36,6 +37,8 @@ const migraciones = [
   { query: AUTH_QUERIES.ADD_RESET_TOKEN,        nombre: 'reset_token' },
   { query: AUTH_QUERIES.ADD_RESET_TOKEN_EXPIRY, nombre: 'reset_token_expiry' },
   { query: AUTH_QUERIES.ADD_NOMBRE_USUARIO,     nombre: 'nombre_usuario' },
+  { query: AUTH_QUERIES.MIGRATE_TOKEN_VERSION,  nombre: 'usuarios: token_version' },
+  { query: AUTH_QUERIES.FIX_TOKEN_VERSION,      nombre: 'usuarios: token_version normalizar default/NOT NULL' },
   {
     query: `INSERT INTO roles (nombre, descripcion)
             VALUES ('Cliente', 'Acceso a la tienda en línea')
@@ -75,6 +78,7 @@ const migraciones = [
   { query: INDEXES_QUERIES.MIGRATE, nombre: 'indexes: fk, filtered columns, composite' },
   { query: PRODUCTOS_QUERIES.MIGRATE_BADGES, nombre: 'productos: es_nuevo, es_temporada' },
   { query: PRODUCTOS_QUERIES.MIGRATE_NAME_UNIQUE, nombre: 'productos: nombre único solo activos' },
+  { query: NOTIFICACIONES_QUERIES.MIGRATE, nombre: 'notificaciones table' },
 ];
 
 async function ejecutarMigraciones() {
@@ -116,6 +120,7 @@ import abonosRoutes from './routes/abonos.routes.js';
 import domiciliosRoutes from './routes/domicilios.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import { ordersRouter, adminOrdersRouter } from './routes/orders.routes.js';
+import notificacionesRoutes from './routes/notificaciones.routes.js';
 
 const app = express();
 
@@ -208,6 +213,7 @@ app.use(`${API}/domicilios`, domiciliosRoutes);
 app.use(`${API}/dashboard`, dashboardRoutes);
 app.use(`${API}/orders`, ordersRouter);
 app.use(`${API}/admin`, adminOrdersRouter);
+app.use(`${API}/notificaciones`, notificacionesRoutes);
 
 // ─────────────────────────────────────────────
 // Health check

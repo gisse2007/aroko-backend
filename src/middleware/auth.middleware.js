@@ -27,6 +27,7 @@ export const verificarToken = async (req, res, next) => {
         u.nombre_usuario,
         u.correo,
         u.estado AS usuario_estado,
+        COALESCE(u.token_version, 0) AS token_version,
         r.id_rol AS rol_id,
         r.nombre AS rol_nombre,
         r.estado AS rol_estado,
@@ -39,13 +40,24 @@ export const verificarToken = async (req, res, next) => {
       LEFT JOIN rol_permiso rp ON rp.rol_id = r.id_rol
       LEFT JOIN permisos p ON p.id_permiso = rp.permiso_id
       WHERE u.id_usuario = $1
-      GROUP BY u.id_usuario, u.nombre_usuario, u.correo, u.estado,
+      GROUP BY u.id_usuario, u.nombre_usuario, u.correo, u.estado, u.token_version,
                r.id_rol, r.nombre, r.estado
     `, [decoded.id_usuario ?? decoded.id]);
 
     const actual = rows[0];
     if (!actual || actual.usuario_estado !== 'ACTIVO' || actual.rol_estado !== 'ACTIVO') {
       return res.status(401).json({ ok: false, message: 'La sesión ya no está activa.' });
+    }
+
+    // Si la contraseña cambió después de emitir este token, su token_version
+    // quedó desactualizada frente a la de la BD: se invalida la sesión.
+    const tokenVersion = Number(decoded.token_version ?? 0);
+    const dbTokenVersion = Number(actual.token_version ?? 0);
+    if (tokenVersion !== dbTokenVersion) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Tu contraseña fue cambiada. Vuelve a iniciar sesión.',
+      });
     }
 
     // Normalizar siempre a id_usuario y permisos vigentes de la BD.

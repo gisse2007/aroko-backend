@@ -4,6 +4,18 @@ import pool from '../config/db.js';
 import { CLIENTES_QUERIES, PEDIDOS_QUERIES } from '../queries/pedidos.queries.js';
 import { ORDERS_QUERIES } from '../queries/orders.queries.js';
 import { enviarCorreoFechaEntrega } from '../services/email.service.js';
+import { crearNotificacion } from '../services/notificaciones.service.js';
+
+// Etiquetas legibles para el mensaje de notificación al cliente
+const ESTADO_PEDIDO_LABEL = {
+  ACTIVO:             'Pendiente',
+  EN_ESPERA_FECHA:    'En espera de fecha',
+  CON_FECHA_ASIGNADA: 'Fecha asignada',
+  ACEPTADO:           'Aceptado',
+  RECHAZADO:          'Rechazado',
+  ENTREGADO:          'Entregado',
+  INACTIVO:           'Cancelado',
+};
 
 // Estados válidos del frontend mapeados a la BD
 const ESTADOS_VALIDOS = [
@@ -687,6 +699,23 @@ export const cambiarEstadoPedido = async (req, res) => {
     }
 
     await client.query('COMMIT');
+
+    // Notificar al cliente dueño del pedido, si tiene una cuenta vinculada.
+    if (rows[0].cliente_id) {
+      const { rows: cliRows } = await pool.query(
+        `SELECT usuario_id FROM clientes WHERE id_cliente = $1`, [rows[0].cliente_id]
+      );
+      const usuarioCliente = cliRows[0]?.usuario_id;
+      if (usuarioCliente) {
+        crearNotificacion({
+          usuario_id: usuarioCliente,
+          tipo: 'PEDIDO',
+          titulo: 'Pedido actualizado',
+          mensaje: `Tu pedido ${rows[0].numero_pedido ?? `#${rows[0].id_pedido}`} pasó a estado "${ESTADO_PEDIDO_LABEL[estado.toUpperCase()] ?? estado}".`,
+        });
+      }
+    }
+
     return res.status(200).json({ ok: true, message: 'Estado del pedido actualizado.', data: rows[0] });
   } catch (error) {
     await client.query('ROLLBACK');

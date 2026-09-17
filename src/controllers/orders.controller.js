@@ -5,6 +5,7 @@ import { ORDERS_QUERIES } from '../queries/orders.queries.js';
 import { PEDIDOS_QUERIES } from '../queries/pedidos.queries.js';
 import { VENTAS_QUERIES, ABONOS_QUERIES } from '../queries/ventas.queries.js';
 import { enviarCorreoFechaEntrega, enviarCorreoPedidoExitoso } from '../services/email.service.js';
+import { crearNotificacion } from '../services/notificaciones.service.js';
 
 const ESTADOS_VALIDOS = ['Pendiente', 'Confirmado', 'En preparación', 'Enviado', 'Entregado', 'Cancelado'];
 
@@ -324,6 +325,16 @@ export const cambiarEstadoOrder = async (req, res) => {
     }
 
     await client.query('COMMIT');
+
+    if (rows[0].user_id) {
+      crearNotificacion({
+        usuario_id: rows[0].user_id,
+        tipo: 'PEDIDO',
+        titulo: 'Pedido actualizado',
+        mensaje: `Tu pedido ${rows[0].numero_pedido ?? `#${rows[0].id}`} pasó a estado "${status}".`,
+      });
+    }
+
     return res.status(200).json({ ok: true, message: 'Estado actualizado.', data: rows[0] });
   } catch (error) {
     await client.query('ROLLBACK');

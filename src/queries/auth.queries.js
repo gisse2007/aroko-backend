@@ -10,6 +10,7 @@ export const AUTH_QUERIES = {
       u.correo,
       u.estado,
       u.rol_id,
+      COALESCE(u.token_version, 0) AS token_version,
       r.id_rol AS rol_id_detalle,
       r.nombre AS rol_nombre,
       r.descripcion AS rol_descripcion,
@@ -59,6 +60,7 @@ export const AUTH_QUERIES = {
       u.correo,
       u.estado,
       u.rol_id,
+      u.token_version,
       r.id_rol,
       r.nombre,
       r.descripcion,
@@ -89,6 +91,7 @@ export const AUTH_QUERIES = {
       u.contrasena,
       u.estado,
       u.rol_id,
+      COALESCE(u.token_version, 0) AS token_version,
       r.id_rol AS rol_id_detalle,
       r.nombre AS rol_nombre,
       r.descripcion AS rol_descripcion,
@@ -120,6 +123,7 @@ export const AUTH_QUERIES = {
       u.contrasena,
       u.estado,
       u.rol_id,
+      u.token_version,
       r.id_rol,
       r.nombre,
       r.descripcion,
@@ -171,10 +175,13 @@ export const AUTH_QUERIES = {
       (SELECT nombre FROM roles WHERE id_rol = rol_id) AS rol_nombre
   `,
 
-  // Actualizar perfil cambiando también la contraseña
+  // Actualizar perfil cambiando también la contraseña.
+  // Incrementa token_version para invalidar cualquier JWT emitido antes
+  // del cambio (otras sesiones/pestañas activas con la contraseña anterior).
   UPDATE_PERFIL_CON_PASSWORD: `
     UPDATE usuarios
-    SET nombre_usuario = $1, correo = $2, contrasena = $3
+    SET nombre_usuario = $1, correo = $2, contrasena = $3,
+        token_version = COALESCE(token_version, 0) + 1
     WHERE id_usuario = $4
     RETURNING
       id_usuario, nombre_usuario, correo, rol_id,
@@ -199,13 +206,16 @@ export const AUTH_QUERIES = {
       AND reset_token_expiry > NOW()
   `,
 
-  // Actualizar contraseña
+  // Actualizar contraseña (flujo "olvidé mi contraseña").
+  // Incrementa token_version para invalidar cualquier sesión activa que
+  // haya quedado abierta con la contraseña anterior.
   UPDATE_PASSWORD: `
     UPDATE usuarios
     SET
       contrasena = $1,
       reset_token = NULL,
-      reset_token_expiry = NULL
+      reset_token_expiry = NULL,
+      token_version = COALESCE(token_version, 0) + 1
     WHERE id_usuario = $2
   `,
 
@@ -221,5 +231,20 @@ export const AUTH_QUERIES = {
   ADD_NOMBRE_USUARIO: `
     ALTER TABLE usuarios
       ADD COLUMN IF NOT EXISTS nombre_usuario VARCHAR(100);
+  `,
+  // Contador que se incrementa cada vez que cambia la contraseña del usuario.
+  // El JWT lleva el valor vigente al momento del login; el middleware de
+  // autenticación lo compara contra este campo en cada petición y rechaza
+  // (401) cualquier token emitido antes del último cambio de contraseña.
+  MIGRATE_TOKEN_VERSION: `
+    ALTER TABLE usuarios
+      ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 0;
+  `,
+  // Normaliza la columna por si ya existía de un intento previo con un
+  // DEFAULT/NULL distinto (ADD COLUMN IF NOT EXISTS no la habría corregido).
+  FIX_TOKEN_VERSION: `
+    UPDATE usuarios SET token_version = 0 WHERE token_version IS NULL;
+    ALTER TABLE usuarios ALTER COLUMN token_version SET DEFAULT 0;
+    ALTER TABLE usuarios ALTER COLUMN token_version SET NOT NULL;
   `,
 };

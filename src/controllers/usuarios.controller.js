@@ -5,6 +5,7 @@ import pool   from '../config/db.js';
 import { USUARIOS_QUERIES, EMPLEADOS_QUERIES } from '../queries/usuarios.queries.js';
 import { CLIENTES_QUERIES } from '../queries/pedidos.queries.js';
 import { enviarCorreoCredenciales, generarContrasena } from '../services/email.service.js';
+import { crearNotificacion } from '../services/notificaciones.service.js';
 
 const ROL_CLIENTE_NOMBRE = 'Cliente';
 
@@ -176,6 +177,12 @@ export const editarUsuario = async (req, res) => {
       ({ rows } = await client.query(USUARIOS_QUERIES.UPDATE_WITH_PASSWORD, [
         correo.trim().toLowerCase(), rol_id, nombreFinal, telefonoFinal, estadoFinal, hash, id,
       ]));
+      crearNotificacion({
+        usuario_id: Number(id),
+        tipo: 'SEGURIDAD',
+        titulo: 'Contraseña actualizada',
+        mensaje: 'Tu contraseña fue cambiada. Se cerraron todas las demás sesiones activas por seguridad.',
+      });
     } else {
       ({ rows } = await client.query(USUARIOS_QUERIES.UPDATE, [
         correo.trim().toLowerCase(), rol_id, nombreFinal, telefonoFinal, estadoFinal, id,

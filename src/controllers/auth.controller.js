@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import pool from '../config/db.js';
 import { AUTH_QUERIES } from '../queries/auth.queries.js';
 import { enviarCorreoBienvenida, enviarCorreoRecuperacion } from '../services/email.service.js';
+import { crearNotificacion } from '../services/notificaciones.service.js';
 
 
 function normalizarPermisos(permisos) {
@@ -47,6 +48,10 @@ function generarToken(usuario) {
     rol_id:     usuario.rol_id,
     permisos,
     empleado_id: usuario.empleado_id ?? null,
+    // Versión de contraseña vigente al momento del login. El middleware de
+    // autenticación la compara contra la BD en cada petición para invalidar
+    // este token si la contraseña cambió después de emitirlo.
+    token_version: usuario.token_version ?? 0,
     rol_obj: {
       id_rol: usuario.rol_id,
       nombre: usuario.rol_nombre,
@@ -438,6 +443,13 @@ export const resetPassword =
         ]
       );
 
+      crearNotificacion({
+        usuario_id: rows[0].id_usuario,
+        tipo: 'SEGURIDAD',
+        titulo: 'Contraseña actualizada',
+        mensaje: 'Tu contraseña fue cambiada. Se cerraron todas las demás sesiones activas por seguridad.',
+      });
+
       return res.status(200).json({
         ok: true,
         message:
@@ -527,6 +539,12 @@ export const actualizarPerfil = async (req, res) => {
         AUTH_QUERIES.UPDATE_PERFIL_CON_PASSWORD,
         [nombre_usuario.trim(), correo.trim().toLowerCase(), hash, id_usuario]
       ));
+      crearNotificacion({
+        usuario_id: id_usuario,
+        tipo: 'SEGURIDAD',
+        titulo: 'Contraseña actualizada',
+        mensaje: 'Tu contraseña fue cambiada. Se cerraron todas las demás sesiones activas por seguridad.',
+      });
     } else {
       ({ rows: updatedRows } = await client.query(
         AUTH_QUERIES.UPDATE_PERFIL,
@@ -554,4 +572,13 @@ export const actualizarPerfil = async (req, res) => {
   } finally {
     client.release();
   }
+};
+
+// GET /api/auth/verify
+// Endpoint liviano para el polling del frontend: si llega hasta aquí es
+// porque el middleware verificarToken ya validó el token Y su token_version
+// contra la base de datos. Si la contraseña cambió en otra sesión, el
+// middleware responde 401 antes de llegar a este handler.
+export const verifySession = (req, res) => {
+  return res.status(200).json({ ok: true });
 };

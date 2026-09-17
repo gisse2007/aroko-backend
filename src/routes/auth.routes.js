@@ -9,6 +9,7 @@ import {
   resetPassword,
   me,
   actualizarPerfil,
+  verifySession,
 } from '../controllers/auth.controller.js';
 
 import { verificarToken } from '../middleware/auth.middleware.js';
@@ -33,6 +34,7 @@ router.post('/reset-password', authLimiter, resetPassword);
 
 // ── Rutas protegidas ────────────────────────
 router.get('/me',         verificarToken, me);
+router.get('/verify',     verificarToken, verifySession);
 router.put('/user/:id',   verificarToken, actualizarPerfil);
 
 export default router;
