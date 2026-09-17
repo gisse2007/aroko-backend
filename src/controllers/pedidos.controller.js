@@ -264,9 +264,17 @@ export const editarPerfilCliente = async (req, res) => {
     return res.status(401).json({ ok: false, message: 'Sesión inválida.' });
   }
 
-  const { nombre, telefono, direccion, email } = req.body;
+  const { nombre, telefono, direccion, email, tipo_documento, documento } = req.body;
   if (!nombre) {
     return res.status(400).json({ ok: false, message: 'El nombre es obligatorio.' });
+  }
+
+  const TIPOS_DOCUMENTO_VALIDOS = ['CC', 'TI', 'CE', 'Pasaporte'];
+  if (tipo_documento && !TIPOS_DOCUMENTO_VALIDOS.includes(tipo_documento)) {
+    return res.status(400).json({ ok: false, message: 'Tipo de documento inválido.' });
+  }
+  if (documento && !/^\d{1,11}$/.test(String(documento).trim())) {
+    return res.status(400).json({ ok: false, message: 'El número de documento debe ser numérico (máx. 11 dígitos).' });
   }
 
   const client = await pool.connect();
@@ -274,7 +282,7 @@ export const editarPerfilCliente = async (req, res) => {
     await client.query('BEGIN');
 
     const { rows: cliRows } = await client.query(
-      `SELECT id_cliente FROM clientes WHERE usuario_id = $1`, [id_usuario]
+      `SELECT id_cliente, tipo_documento, documento FROM clientes WHERE usuario_id = $1`, [id_usuario]
     );
     if (cliRows.length === 0) {
       await client.query('ROLLBACK');
@@ -292,16 +300,29 @@ export const editarPerfilCliente = async (req, res) => {
       }
     }
 
+    if (documento) {
+      const { rows: dupDocumento } = await client.query(
+        CLIENTES_QUERIES.DOCUMENTO_EXISTS, [documento.trim(), id_cliente]
+      );
+      if (dupDocumento.length > 0) {
+        await client.query('ROLLBACK');
+        return res.status(409).json({ ok: false, message: 'Ese número de documento ya está en uso.' });
+      }
+    }
+
     const { rows } = await client.query(
       `UPDATE clientes
-       SET nombre = $1, telefono = $2, direccion = $3, email = $4
-       WHERE id_cliente = $5
+       SET nombre = $1, telefono = $2, direccion = $3, email = $4,
+           tipo_documento = $5, documento = $6
+       WHERE id_cliente = $7
        RETURNING *`,
       [
         nombre.trim(),
         (telefono  || '').trim() || null,
         (direccion || '').trim() || null,
         (email     || '').trim().toLowerCase() || null,
+        (tipo_documento || '').trim() || cliRows[0].tipo_documento,
+        (documento || '').trim() || cliRows[0].documento,
         id_cliente,
       ]
     );
